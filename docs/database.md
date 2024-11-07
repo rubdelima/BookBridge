@@ -84,6 +84,7 @@ LIVRO {
     VARCHAR2 autor
     VARCHAR2 nome
     VARCHAR2 genero
+    VARCHAR2 descricao
 }
 
 PARTICIPA {
@@ -99,9 +100,8 @@ ADICIONAR {
 }
 
 AVALIAR {
-    VARCHAR2 id
-    VARCHAR2 avaliador
-    VARCHAR2 livro
+    VARCHAR2 avaliador_id
+    VARCHAR2 livro_id
     VARCHAR2 descricao
     INTEGER nota
     DATE data_avaliacao
