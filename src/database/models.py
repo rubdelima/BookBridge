@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime, timezone
 
 db = SQLAlchemy()
 
@@ -36,7 +37,7 @@ class Adiciona(db.Model):
     usuario_id = db.Column(db.String(10), db.ForeignKey('usuario.id'), primary_key=True)
     clube_id = db.Column(db.String(10), db.ForeignKey('clube.id'), primary_key=True)
     livro_id = db.Column(db.String(10), db.ForeignKey('livro.id'), primary_key=True)
-    data_adicao = db.Column(db.Date, nullable=False)
+    data_adicao = db.Column(db.Date, nullable=False, default=datetime.now(tz=timezone.utc))
 
 class Avaliacao(db.Model):
     __tablename__ = 'avaliacao'
@@ -44,4 +45,4 @@ class Avaliacao(db.Model):
     livro_id = db.Column(db.String(10), db.ForeignKey('livro.id'), primary_key=True)
     descricao = db.Column(db.String(1000))
     estrelas = db.Column(db.Integer, nullable=False)
-    data_avaliacao = db.Column(db.DateTime, nullable=False)
+    data_avaliacao = db.Column(db.DateTime, nullable=False, default=datetime.now(tz=timezone.utc))

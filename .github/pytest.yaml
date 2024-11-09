@@ -1,0 +1,35 @@
+name: Pytest CI
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: BookBridge CI
+    runs-on: ubuntu-latest
+
+    steps:
+      # Passo 1: Checkout do código
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Passo 2: Configurar Python
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.12'
+
+      # Passo 3: Configurar o ambiente com o bookbridge.sh
+      - name: Run bookbridge.sh build
+        run: |
+          bash bookbridge.sh build  # Cria e ativa o ambiente virtual
+
+      # Passo 4: Executar pytest com o ambiente ativado
+      - name: Run bookbridge.sh test
+        run: |
+          bash bookbridge.sh test  # Executa os testes com o Python da venv
