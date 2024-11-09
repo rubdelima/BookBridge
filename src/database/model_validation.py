@@ -1,8 +1,39 @@
 from src.database.models import Usuario
 from flask import jsonify
 import re
-import random
+import secrets
 import string
+import jwt
+from functools import wraps
+from flask import request, jsonify, current_app
+from datetime import datetime, timedelta, timezone
+
+current_app.config['SECRET_KEY'] = '936eb4f154867b74386f1bfc930ae0e7e8e4f9a759557dbfce0cb9f3a4a49edf'
+
+def check_jwt_token(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = request.headers.get('Authorization')
+        if not token:
+            return jsonify({'message': 'Token de autenticação é necessário'}), 403
+
+        try:
+            data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
+            current_user = Usuario.query.filter_by(id=data['user_id']).first()
+        except jwt.ExpiredSignatureError:
+            return jsonify({'message': 'Token expirado'}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({'message': 'Token inválido'}), 401
+
+        return f(current_user, *args, **kwargs)
+
+    return decorated
+
+def get_token(user_id):
+    return jwt.encode({
+        'user_id': user_id,
+        'exp': datetime.now(tz=timezone.utc) + timedelta(days=7)
+    }, current_app.config['SECRET_KEY'], algorithm='HS256')
 
 def valide_user(dados:dict)->Usuario:
     try:
@@ -86,7 +117,7 @@ def valide_user(dados:dict)->Usuario:
     
     while True:
         # Gerando um novo id
-        new_id = ''.join(random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=10))
+        new_id = secrets.token_hex(32)
         
         # Verificando se o nickname gerado já existe no banco de dados
         if not Usuario.query.filter_by(nickname = new_id).first():
