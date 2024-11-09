@@ -60,6 +60,10 @@ install() {
   fi
 }
 
+refresh_dependencies() {
+  $PIP_EXEC install -r requirements.txt
+}
+
 command() {
   if [ -d "$VENV_DIR" ]; then
     $PYTHON_EXEC $@
@@ -73,5 +77,6 @@ case "$1" in
   start) start ;;
   test)  test ;;
   install) install ;;
+  refresh ) refresh_dependencies ;;
   *) shift; command $@ ;;  # Qualquer comando não identificado será passado para o ambiente virtual usando o Python da venv
 esac
