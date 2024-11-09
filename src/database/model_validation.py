@@ -1,70 +1,104 @@
-from pydantic import BaseModel, constr
-from typing import Annotated, Optional
+from src.database.models import Usuario
+from flask import jsonify
+import re
+import random
+import string
 
-class UsuarioValidacao(BaseModel):
-    "Classe do usuário no Banco de Dados"
+def valide_user(dados:dict)->Usuario:
+    try:
+        assert (user_email := dados.get('email'))
+    except:
+        return jsonify(
+            {"error" : "O campo de email não foi preenchido"}
+        ), 403
     
-    id : str
-    "Id único do usuário, chave primária que referencia o usuário"
+    # Verificação do pattern do email
+    try:
+        assert re.fullmatch(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', user_email)
+    except:
+        return jsonify(
+            {"error" : "Formato de email inválido"}
+        ), 403
     
-    email : str
-    "Email utilizado pelo usuário, deve ter um valor não nulo e pode ser alterado"
+    # Verificação se o email já existe no banco de dados
+    try:
+        assert not Usuario.query.filter_by(email = user_email).first()
+    except:
+        return jsonify(
+            {"error" : "Email já cadastrado"}
+        ), 401
     
-    senha : Annotated[str, constr(pattern=r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$')]
-    "Senha do usuário, deve conter no mínimo 8 caracteres, dentre eles deva haver ao menos uma letra maúscula, uma minúscula e uma letra"
+    # Verificação da senha
     
-    nickname : str
-    "Nickname que referencia o usuário, ela é única e exclusiva a esse usuário"
+    # Verificação se o campo de senha foi preenchido
+    try:
+        assert (senha := dados.get('senha'))
+    except:
+        return jsonify(
+            {"error" : "O campo de senha não foi preenchido"}
+        ), 403
     
-    nome : str
-    "Nome do Usuário"
+    # Verificação da senha segura
+    try:
+        assert re.fullmatch(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$', senha)
+    except:
+        return jsonify(
+            {"error" : "Senha inválida, deve conter no mínimo 8 caracteres, dentre eles deva haver ao menos uma letra maúscula, uma minúscula e um número"}
+        ), 403
+        
+    # Verificação do Nickname do Usuário
     
-    sobrenome : str
-    "Sobrenome do Usuário"
+    # Verificação se o campo de nickname foi preenchido
+    try:
+        assert (nickname := dados.get('nickname'))
+    except:
+        return jsonify(
+            {"error" : "O campo de nickname não foi preenchido"}
+        ), 403
     
-class ClubeValidacao(BaseModel):
-    "Modelo de um Clube de Livros no Banco de Dados"
+    # Verificação se o nicname é único
+    try:
+        assert not Usuario.query.filter_by(nickname = nickname).first()
+    except:
+        return jsonify(
+            {"error" : "Nickname já cadastrado"}
+        ), 401
     
-    id : str
-    "Identificação única do clube "
+    # Verificação do Nome do Usuário
     
-    criador : str
-    "Id que referencia o usuário que criou o clube"
+    # Verificação se o campo de nome foi preenchido
+    try:
+        assert (nome := dados.get('nome'))
+    except:
+        return jsonify(
+            {"error" : "O campo de nome não foi preenchido"}
+        ), 403
     
-    nome : str
-    "Nome o qual o Clube é chamado e pode ser buscado pelo usuário"
+    # Verificação do Sobrenome do Usuário
     
-    description : str
-    "Descrição do Clube"
+    # Verificação se o campo de sobrenome foi preenchido
+    try:
+        assert (sobrenome := dados.get('sobrenome'))
+    except:
+        return jsonify(
+            {"error" : "O campo de sobrenome não foi preenchido"}
+        ), 403
+    
+    while True:
+        # Gerando um novo id
+        new_id = ''.join(random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=10))
+        
+        # Verificando se o nickname gerado já existe no banco de dados
+        if not Usuario.query.filter_by(nickname = new_id).first():
+            break
+    
+    # Caso todos os dados sejam válidos, cria um novo usuário
+    return Usuario(
+        id =  new_id,
+        email = user_email,
+        senha = senha,
+        nickname = nickname,
+        nome = nome,
+        sobrenome = sobrenome
+    )
 
-class LivroValidacao(BaseModel):
-    "Modelo de um livro no Banco de Dados"
-    
-    id : str
-    "Identificaçao única do Livro"
-    
-    autor : str
-    "Nome do autor que fez o livro, pode ser importante para buscas"
-    
-    nome : str
-    "Nome do livro"
-    
-    genero : Optional[str] = None
-    "Genero no qual esse livro pertence, pode ser utilizado como parâmetro de busca"
-    
-    descricao : Optional[str] = None
-    "Descrição do livro em questao"
-    
-class AvaliacaoValidacao(BaseModel):
-    "Modelo de uma avaliação no Banco de Dados"
-    avaliador_id :str
-    "Identificação de quem realizou a avaliação"
-    
-    livro_id : str
-    "Identificação do livro"
-    
-    descricao : Optional[str] = None
-    "Texto da avaliação"
-
-    estrelas : int
-    "Quantidade de estrelas dadas a um determinado livro, varia entre 0 e 5"    

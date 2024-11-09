@@ -1,5 +1,5 @@
 from typing import Optional
-from database.models import Usuario
+from src.database.models import Usuario
 from werkzeug.security import check_password_hash
 from sqlalchemy import or_
 
