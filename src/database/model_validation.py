@@ -8,8 +8,6 @@ from functools import wraps
 from flask import request, jsonify, current_app
 from datetime import datetime, timedelta, timezone
 
-current_app.config['SECRET_KEY'] = '936eb4f154867b74386f1bfc930ae0e7e8e4f9a759557dbfce0cb9f3a4a49edf'
-
 def check_jwt_token(f):
     @wraps(f)
     def decorated(*args, **kwargs):

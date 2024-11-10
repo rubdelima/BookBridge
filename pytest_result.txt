@@ -1,59 +1,10 @@
 ============================= test session starts ==============================
 platform linux -- Python 3.12.3, pytest-8.3.3, pluggy-1.5.0
 rootdir: /home/rublima/bookbridge
-collected 13 items
+collected 23 items
 
-tests/database/test_books.py .........                                   [ 69%]
+tests/database/test_books.py .........                                   [ 39%]
+tests/database/test_club.py ..........                                   [ 82%]
 tests/database/test_users.py ....                                        [100%]
 
-=============================== warnings summary ===============================
-tests/database/test_books.py::test_create_livro
-  /home/rublima/bookbridge/tests/database/test_books.py:16: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
-    livro_criado = Livro.query.get('L123')
-
-tests/database/test_books.py::test_read_livro
-  /home/rublima/bookbridge/tests/database/test_books.py:22: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
-    livro = Livro.query.get('L123')
-
-tests/database/test_books.py::test_update_livro
-  /home/rublima/bookbridge/tests/database/test_books.py:28: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
-    livro = Livro.query.get('L123')
-
-tests/database/test_books.py::test_update_livro
-  /home/rublima/bookbridge/tests/database/test_books.py:32: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
-    livro_atualizado = Livro.query.get('L123')
-
-tests/database/test_books.py::test_delete_livro
-  /home/rublima/bookbridge/tests/database/test_books.py:38: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
-    livro = Livro.query.get('L123')
-
-tests/database/test_books.py::test_delete_livro
-  /home/rublima/bookbridge/tests/database/test_books.py:42: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
-    livro_excluido = Livro.query.get('L123')
-
-tests/database/test_books.py::test_create_avaliacao
-  /home/rublima/bookbridge/tests/database/test_books.py:56: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
-    avaliacao_criada = Avaliacao.query.get(('1234567890', 'L123'))
-
-tests/database/test_books.py::test_read_avaliacao
-  /home/rublima/bookbridge/tests/database/test_books.py:62: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
-    avaliacao = Avaliacao.query.get(('1234567890', 'L123'))
-
-tests/database/test_books.py::test_update_avaliacao
-  /home/rublima/bookbridge/tests/database/test_books.py:68: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
-    avaliacao = Avaliacao.query.get(('1234567890', 'L123'))
-
-tests/database/test_books.py::test_update_avaliacao
-  /home/rublima/bookbridge/tests/database/test_books.py:72: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
-    avaliacao_atualizada = Avaliacao.query.get(('1234567890', 'L123'))
-
-tests/database/test_books.py::test_delete_avaliacao
-  /home/rublima/bookbridge/tests/database/test_books.py:78: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
-    avaliacao = Avaliacao.query.get(('1234567890', 'L123'))
-
-tests/database/test_books.py::test_delete_avaliacao
-  /home/rublima/bookbridge/tests/database/test_books.py:82: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
-    avaliacao_excluida = Avaliacao.query.get(('1234567890', 'L123'))
-
--- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-======================= 13 passed, 12 warnings in 0.38s ========================
+============================== 23 passed in 0.44s ==============================
