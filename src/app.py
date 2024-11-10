@@ -21,10 +21,10 @@ def create_app():
     # Configuração do Logger
     file_handler = logging.FileHandler('./app.log')
     file_handler.setLevel(logging.DEBUG)
-    file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))    
+    file_handler.setFormatter(logging.Formatter(f'%(asctime)s - %(levelname)-{6}s : %(message)s'))
     app.logger.addHandler(file_handler)
     app.logger.setLevel(logging.DEBUG)
-    app.logger.info(f"API BookBridge Iniciada em {datetime.now(tz=timezone.utc)}")
+    app.logger.info(f"API BookBridge Iniciada")
     
     with app.app_context():
         db.create_all()

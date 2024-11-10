@@ -5,10 +5,378 @@ collected 24 items
 
 tests/database/test_books.py .........                                   [ 37%]
 tests/database/test_club.py ..........                                   [ 79%]
-tests/database/test_users.py ....                                        [ 95%]
+tests/database/test_users.py FFFF                                        [ 95%]
 tests/requests/test_user.py F                                            [100%]
 
 =================================== FAILURES ===================================
+_____________________________ test_create_usuario ______________________________
+
+self = <sqlalchemy.engine.base.Connection object at 0x7fe6b2b73d10>
+dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x7fe6b3cf3e30>
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x7fe6b2b73da0>
+statement = <sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x7fe6b2b73dd0>
+parameters = [('1234567890', 'teste@exemplo.com', 'Senha@123', 'tester', 'Maria', 'da Silva')]
+
+    def _exec_single_context(
+        self,
+        dialect: Dialect,
+        context: ExecutionContext,
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+    ) -> CursorResult[Any]:
+        """continue the _execute_context() method for a single DBAPI
+        cursor.execute() or cursor.executemany() call.
+    
+        """
+        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
+            generic_setinputsizes = context._prepare_set_input_sizes()
+    
+            if generic_setinputsizes:
+                try:
+                    dialect.do_set_input_sizes(
+                        context.cursor, generic_setinputsizes, context
+                    )
+                except BaseException as e:
+                    self._handle_dbapi_exception(
+                        e, str(statement), parameters, None, context
+                    )
+    
+        cursor, str_statement, parameters = (
+            context.cursor,
+            context.statement,
+            context.parameters,
+        )
+    
+        effective_parameters: Optional[_AnyExecuteParams]
+    
+        if not context.executemany:
+            effective_parameters = parameters[0]
+        else:
+            effective_parameters = parameters
+    
+        if self._has_events or self.engine._has_events:
+            for fn in self.dispatch.before_cursor_execute:
+                str_statement, effective_parameters = fn(
+                    self,
+                    cursor,
+                    str_statement,
+                    effective_parameters,
+                    context,
+                    context.executemany,
+                )
+    
+        if self._echo:
+            self._log_info(str_statement)
+    
+            stats = context._get_cache_stats()
+    
+            if not self.engine.hide_parameters:
+                self._log_info(
+                    "[%s] %r",
+                    stats,
+                    sql_util._repr_params(
+                        effective_parameters,
+                        batches=10,
+                        ismulti=context.executemany,
+                    ),
+                )
+            else:
+                self._log_info(
+                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
+                    stats,
+                )
+    
+        evt_handled: bool = False
+        try:
+            if context.execute_style is ExecuteStyle.EXECUTEMANY:
+                effective_parameters = cast(
+                    "_CoreMultiExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_executemany:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_executemany(
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                    )
+            elif not effective_parameters and context.no_parameters:
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute_no_params:
+                        if fn(cursor, str_statement, context):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute_no_params(
+                        cursor, str_statement, context
+                    )
+            else:
+                effective_parameters = cast(
+                    "_CoreSingleExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+>                   self.dialect.do_execute(
+                        cursor, str_statement, effective_parameters, context
+                    )
+
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1967: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x7fe6b3cf3e30>
+cursor = <sqlite3.Cursor object at 0x7fe6b2b6bdc0>
+statement = 'INSERT INTO usuario (id, email, senha, nickname, nome, sobrenome) VALUES (?, ?, ?, ?, ?, ?)'
+parameters = ('1234567890', 'teste@exemplo.com', 'Senha@123', 'tester', 'Maria', 'da Silva')
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x7fe6b2b73da0>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlite3.IntegrityError: UNIQUE constraint failed: usuario.id
+
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/engine/default.py:941: IntegrityError
+
+The above exception was the direct cause of the following exception:
+
+setup_database = <Flask 'src.app'>
+
+    def test_create_usuario(setup_database):
+        usuario = Usuario(
+            id='1234567890',
+            email='teste@exemplo.com',
+            senha='Senha@123',
+            nickname='tester',
+            nome='Maria',
+            sobrenome='da Silva'
+        )
+        db.session.add(usuario)
+>       db.session.commit()
+
+tests/database/test_users.py:14: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/scoping.py:597: in commit
+    return self._proxied.commit()
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2028: in commit
+    trans.commit(_to_root=True)
+<string>:2: in commit
+    ???
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py:139: in _go
+    ret_value = fn(self, *arg, **kw)
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/session.py:1313: in commit
+    self._prepare_impl()
+<string>:2: in _prepare_impl
+    ???
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py:139: in _go
+    ret_value = fn(self, *arg, **kw)
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/session.py:1288: in _prepare_impl
+    self.session.flush()
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/session.py:4352: in flush
+    self._flush(objects)
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/session.py:4487: in _flush
+    with util.safe_reraise():
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py:146: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/session.py:4448: in _flush
+    flush_context.execute()
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py:466: in execute
+    rec.execute(self)
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py:642: in execute
+    util.preloaded.orm_persistence.save_obj(
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py:93: in save_obj
+    _emit_insert_statements(
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py:1048: in _emit_insert_statements
+    result = connection.execute(
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1418: in execute
+    return meth(
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/sql/elements.py:515: in _execute_on_connection
+    return connection._execute_clauseelement(
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1640: in _execute_clauseelement
+    ret = self._execute_context(
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1846: in _execute_context
+    return self._exec_single_context(
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/engine/base.py:2355: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x7fe6b3cf3e30>
+cursor = <sqlite3.Cursor object at 0x7fe6b2b6bdc0>
+statement = 'INSERT INTO usuario (id, email, senha, nickname, nome, sobrenome) VALUES (?, ?, ?, ?, ?, ?)'
+parameters = ('1234567890', 'teste@exemplo.com', 'Senha@123', 'tester', 'Maria', 'da Silva')
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x7fe6b2b73da0>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: usuario.id
+E       [SQL: INSERT INTO usuario (id, email, senha, nickname, nome, sobrenome) VALUES (?, ?, ?, ?, ?, ?)]
+E       [parameters: ('1234567890', 'teste@exemplo.com', 'Senha@123', 'tester', 'Maria', 'da Silva')]
+E       (Background on this error at: https://sqlalche.me/e/20/gkpj)
+
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/engine/default.py:941: IntegrityError
+______________________________ test_read_usuario _______________________________
+
+setup_database = <Flask 'src.app'>
+
+    def test_read_usuario(setup_database):
+>       usuario = Usuario.query.filter_by(email='teste@exemplo.com').first()
+
+tests/database/test_users.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/query.py:2728: in first
+    return self.limit(1)._iter().first()  # type: ignore
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/query.py:2827: in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2362: in execute
+    return self._execute_internal(
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2237: in _execute_internal
+    conn = self._connection_for_bind(bind)
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2106: in _connection_for_bind
+    return trans._connection_for_bind(engine, execution_options)
+<string>:2: in _connection_for_bind
+    ???
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py:103: in _go
+    self._raise_for_prerequisite_state(fn.__name__, current_state)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.orm.session.SessionTransaction object at 0x7fe6b2b99650>
+operation_name = '_connection_for_bind'
+state = <SessionTransactionState.DEACTIVE: 4>
+
+    def _raise_for_prerequisite_state(
+        self, operation_name: str, state: _StateChangeState
+    ) -> NoReturn:
+        if state is SessionTransactionState.DEACTIVE:
+            if self._rollback_exception:
+>               raise sa_exc.PendingRollbackError(
+                    "This Session's transaction has been rolled back "
+                    "due to a previous exception during flush."
+                    " To begin a new transaction with this Session, "
+                    "first issue Session.rollback()."
+                    f" Original exception was: {self._rollback_exception}",
+                    code="7s2a",
+                )
+E               sqlalchemy.exc.PendingRollbackError: This Session's transaction has been rolled back due to a previous exception during flush. To begin a new transaction with this Session, first issue Session.rollback(). Original exception was: (sqlite3.IntegrityError) UNIQUE constraint failed: usuario.id
+E               [SQL: INSERT INTO usuario (id, email, senha, nickname, nome, sobrenome) VALUES (?, ?, ?, ?, ?, ?)]
+E               [parameters: ('1234567890', 'teste@exemplo.com', 'Senha@123', 'tester', 'Maria', 'da Silva')]
+E               (Background on this error at: https://sqlalche.me/e/20/gkpj) (Background on this error at: https://sqlalche.me/e/20/7s2a)
+
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/session.py:973: PendingRollbackError
+_____________________________ test_update_usuario ______________________________
+
+setup_database = <Flask 'src.app'>
+
+    def test_update_usuario(setup_database):
+>       usuario = Usuario.query.filter_by(email='teste@exemplo.com').first()
+
+tests/database/test_users.py:28: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/query.py:2728: in first
+    return self.limit(1)._iter().first()  # type: ignore
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/query.py:2827: in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2362: in execute
+    return self._execute_internal(
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2237: in _execute_internal
+    conn = self._connection_for_bind(bind)
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2106: in _connection_for_bind
+    return trans._connection_for_bind(engine, execution_options)
+<string>:2: in _connection_for_bind
+    ???
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py:103: in _go
+    self._raise_for_prerequisite_state(fn.__name__, current_state)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.orm.session.SessionTransaction object at 0x7fe6b2b99650>
+operation_name = '_connection_for_bind'
+state = <SessionTransactionState.DEACTIVE: 4>
+
+    def _raise_for_prerequisite_state(
+        self, operation_name: str, state: _StateChangeState
+    ) -> NoReturn:
+        if state is SessionTransactionState.DEACTIVE:
+            if self._rollback_exception:
+>               raise sa_exc.PendingRollbackError(
+                    "This Session's transaction has been rolled back "
+                    "due to a previous exception during flush."
+                    " To begin a new transaction with this Session, "
+                    "first issue Session.rollback()."
+                    f" Original exception was: {self._rollback_exception}",
+                    code="7s2a",
+                )
+E               sqlalchemy.exc.PendingRollbackError: This Session's transaction has been rolled back due to a previous exception during flush. To begin a new transaction with this Session, first issue Session.rollback(). Original exception was: (sqlite3.IntegrityError) UNIQUE constraint failed: usuario.id
+E               [SQL: INSERT INTO usuario (id, email, senha, nickname, nome, sobrenome) VALUES (?, ?, ?, ?, ?, ?)]
+E               [parameters: ('1234567890', 'teste@exemplo.com', 'Senha@123', 'tester', 'Maria', 'da Silva')]
+E               (Background on this error at: https://sqlalche.me/e/20/gkpj) (Background on this error at: https://sqlalche.me/e/20/7s2a)
+
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/session.py:973: PendingRollbackError
+_____________________________ test_delete_usuario ______________________________
+
+setup_database = <Flask 'src.app'>
+
+    def test_delete_usuario(setup_database):
+>       usuario = Usuario.query.filter_by(email='teste@exemplo.com').first()
+
+tests/database/test_users.py:37: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/query.py:2728: in first
+    return self.limit(1)._iter().first()  # type: ignore
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/query.py:2827: in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2362: in execute
+    return self._execute_internal(
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2237: in _execute_internal
+    conn = self._connection_for_bind(bind)
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2106: in _connection_for_bind
+    return trans._connection_for_bind(engine, execution_options)
+<string>:2: in _connection_for_bind
+    ???
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py:103: in _go
+    self._raise_for_prerequisite_state(fn.__name__, current_state)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.orm.session.SessionTransaction object at 0x7fe6b2b99650>
+operation_name = '_connection_for_bind'
+state = <SessionTransactionState.DEACTIVE: 4>
+
+    def _raise_for_prerequisite_state(
+        self, operation_name: str, state: _StateChangeState
+    ) -> NoReturn:
+        if state is SessionTransactionState.DEACTIVE:
+            if self._rollback_exception:
+>               raise sa_exc.PendingRollbackError(
+                    "This Session's transaction has been rolled back "
+                    "due to a previous exception during flush."
+                    " To begin a new transaction with this Session, "
+                    "first issue Session.rollback()."
+                    f" Original exception was: {self._rollback_exception}",
+                    code="7s2a",
+                )
+E               sqlalchemy.exc.PendingRollbackError: This Session's transaction has been rolled back due to a previous exception during flush. To begin a new transaction with this Session, first issue Session.rollback(). Original exception was: (sqlite3.IntegrityError) UNIQUE constraint failed: usuario.id
+E               [SQL: INSERT INTO usuario (id, email, senha, nickname, nome, sobrenome) VALUES (?, ?, ?, ?, ?, ?)]
+E               [parameters: ('1234567890', 'teste@exemplo.com', 'Senha@123', 'tester', 'Maria', 'da Silva')]
+E               (Background on this error at: https://sqlalche.me/e/20/gkpj) (Background on this error at: https://sqlalche.me/e/20/7s2a)
+
+.bookbridge/lib/python3.12/site-packages/sqlalchemy/orm/session.py:973: PendingRollbackError
 _______________________________ test_create_user _______________________________
 
 client = <FlaskClient <Flask 'src.app'>>
@@ -23,5 +391,9 @@ E        +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR
 
 tests/requests/test_user.py:18: AssertionError
 =========================== short test summary info ============================
+FAILED tests/database/test_users.py::test_create_usuario - sqlalchemy.exc.Int...
+FAILED tests/database/test_users.py::test_read_usuario - sqlalchemy.exc.Pendi...
+FAILED tests/database/test_users.py::test_update_usuario - sqlalchemy.exc.Pen...
+FAILED tests/database/test_users.py::test_delete_usuario - sqlalchemy.exc.Pen...
 FAILED tests/requests/test_user.py::test_create_user - assert 500 == 200
-========================= 1 failed, 23 passed in 0.23s =========================
+========================= 5 failed, 19 passed in 0.82s =========================
