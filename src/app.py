@@ -1,6 +1,10 @@
 from flask import Flask
 from src.database.models import db
 from src.routes.user import users_bp
+# from src.routes.books import books_bp
+import logging
+from datetime import datetime, timezone
+
 
 def create_app():
     app = Flask(__name__)
@@ -12,7 +16,16 @@ def create_app():
     db.init_app(app)
 
     app.register_blueprint(users_bp)
-
+    # app.register_blueprint(books_bp)
+    
+    # Configuração do Logger
+    file_handler = logging.FileHandler('./app.log')
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))    
+    app.logger.addHandler(file_handler)
+    app.logger.setLevel(logging.DEBUG)
+    app.logger.info(f"API BookBridge Iniciada em {datetime.now(tz=timezone.utc)}")
+    
     with app.app_context():
         db.create_all()
 

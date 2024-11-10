@@ -1,10 +1,27 @@
 ============================= test session starts ==============================
 platform linux -- Python 3.12.3, pytest-8.3.3, pluggy-1.5.0
 rootdir: /home/rublima/bookbridge
-collected 23 items
+collected 24 items
 
-tests/database/test_books.py .........                                   [ 39%]
-tests/database/test_club.py ..........                                   [ 82%]
-tests/database/test_users.py ....                                        [100%]
+tests/database/test_books.py .........                                   [ 37%]
+tests/database/test_club.py ..........                                   [ 79%]
+tests/database/test_users.py ....                                        [ 95%]
+tests/requests/test_user.py F                                            [100%]
 
-============================== 23 passed in 0.44s ==============================
+=================================== FAILURES ===================================
+_______________________________ test_create_user _______________________________
+
+client = <FlaskClient <Flask 'src.app'>>
+new_user_data = {'email': 'test@example.com', 'nickname': 'testuser', 'nome': 'Test', 'senha': 'Senha@123', ...}
+
+    def test_create_user(client, new_user_data):
+        """Teste para criação de um novo usuário"""
+        response = client.post('/usuarios', data=json.dumps(new_user_data), content_type='application/json')
+>       assert response.status_code == 200
+E       assert 500 == 200
+E        +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+
+tests/requests/test_user.py:18: AssertionError
+=========================== short test summary info ============================
+FAILED tests/requests/test_user.py::test_create_user - assert 500 == 200
+========================= 1 failed, 23 passed in 0.23s =========================
