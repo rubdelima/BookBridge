@@ -2,7 +2,6 @@ from src.database.models import Usuario
 from flask import jsonify
 import re
 import secrets
-import string
 import jwt
 from functools import wraps
 from flask import request, jsonify, current_app
@@ -13,16 +12,20 @@ def check_jwt_token(f):
     def decorated(*args, **kwargs):
         token = request.headers.get('Authorization')
         if not token:
+            current_app.logger.error('Token de autenticação é necessário')
             return jsonify({'message': 'Token de autenticação é necessário'}), 403
 
         try:
             data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
             current_user = Usuario.query.filter_by(id=data['user_id']).first()
         except jwt.ExpiredSignatureError:
+            current_app.logger.error('Token expirado')
             return jsonify({'message': 'Token expirado'}), 401
         except jwt.InvalidTokenError:
+            current_app.logger.error('Token invalido')
             return jsonify({'message': 'Token inválido'}), 401
 
+        current_app.logger(f"Usuário {current_user.id} logado com sucesso! ")
         return f(current_user, *args, **kwargs)
 
     return decorated
@@ -34,11 +37,18 @@ def get_token(user_id):
     }, current_app.config['SECRET_KEY'], algorithm='HS256')
 
 def valide_user(dados:dict)->Usuario:
+    # Verificação se todos os campos foram preenchidos
     try:
-        assert (user_email := dados.get('email'))
-    except:
+        assert (user_email := dados.get('email')), ('email', )
+        assert (senha := dados.get('senha')), ('senha', )
+        assert (nickname := dados.get('nickname')), ('nickname', )
+        assert (nome := dados.get('nome')), ('nome', )
+        assert (sobrenome := dados.get('sobrenome'))
+        
+    except AssertionError as ae:
+        current_app.logger.error(f"Campo de {ae.args[0]} não foi preenchido")
         return jsonify(
-            {"error" : "O campo de email não foi preenchido"}
+            {"error" : f"O campo de {ae.args[0]} não foi preenchido"}
         ), 403
     
     # Verificação do pattern do email
@@ -57,15 +67,6 @@ def valide_user(dados:dict)->Usuario:
             {"error" : "Email já cadastrado"}
         ), 401
     
-    # Verificação da senha
-    
-    # Verificação se o campo de senha foi preenchido
-    try:
-        assert (senha := dados.get('senha'))
-    except:
-        return jsonify(
-            {"error" : "O campo de senha não foi preenchido"}
-        ), 403
     
     # Verificação da senha segura
     try:
@@ -75,16 +76,6 @@ def valide_user(dados:dict)->Usuario:
             {"error" : "Senha inválida, deve conter no mínimo 8 caracteres, dentre eles deva haver ao menos uma letra maúscula, uma minúscula e um número"}
         ), 403
         
-    # Verificação do Nickname do Usuário
-    
-    # Verificação se o campo de nickname foi preenchido
-    try:
-        assert (nickname := dados.get('nickname'))
-    except:
-        return jsonify(
-            {"error" : "O campo de nickname não foi preenchido"}
-        ), 403
-    
     # Verificação se o nicname é único
     try:
         assert not Usuario.query.filter_by(nickname = nickname).first()
@@ -92,26 +83,6 @@ def valide_user(dados:dict)->Usuario:
         return jsonify(
             {"error" : "Nickname já cadastrado"}
         ), 401
-    
-    # Verificação do Nome do Usuário
-    
-    # Verificação se o campo de nome foi preenchido
-    try:
-        assert (nome := dados.get('nome'))
-    except:
-        return jsonify(
-            {"error" : "O campo de nome não foi preenchido"}
-        ), 403
-    
-    # Verificação do Sobrenome do Usuário
-    
-    # Verificação se o campo de sobrenome foi preenchido
-    try:
-        assert (sobrenome := dados.get('sobrenome'))
-    except:
-        return jsonify(
-            {"error" : "O campo de sobrenome não foi preenchido"}
-        ), 403
     
     while True:
         # Gerando um novo id

@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from src.database.models import db, Usuario
 from src.database import model_validation as validator, autenticar
 
@@ -34,19 +34,27 @@ def post_user():
     
     
     """
-        
+    
+    current_app.logger.info(f"Requisição de POST de usuário recebida, conteudo: {request.json}")
+    
     # Validação dos campos do Usuário
     user = validator.valide_user(request.json)
+    if not isinstance(user, Usuario):
+        return user
+    
     
     try:
         # Salva o novo usuário no banco de dados
         db.session.add(user)
         db.session.commit()
-        return jsonify({'token' : validator.get_token(user.id)}), 200
+        token  = validator.get_token(user.id)
+        current_app.logger.info(f"Usuário criado com sucesso, token: {token}")
+        return jsonify({'token' : token}), 200
     
     except Exception as e:
         # Desfaz alteracões e retorna o erro
         db.session.rollback()
+        current_app.logger.exception(str(e))
         return jsonify({"error": str(e)}), 500
     
 @users_bp.route('/usuarios/login/', methods=['GET'])
@@ -74,35 +82,40 @@ def login_user():
     - token : str (token de autenticação)
     """
     
+    current_app.logger.info(f"Requisição de LOGIN/GET de usuário recebida, dados recebidos: {request.json}")
+    
     dados = request.json
     
     try:
-        assert (senha:= dados.get('senha'))
-    except:
-        return jsonify(
-            {"error" : "O campo de senha não foi preenchido"}
-        ), 403
+        assert (senha:= dados.get('senha')), ('senha', )
+        assert (email := dados.get('email')) or (nickname := dados.get('nickname')), ('email ou nickname')
     
-    try:
-        assert (email := dados.get('email')) or (nickname := dados.get('nickname'))
-    except:
+    except AssertionError as ae:
+        current_app.logger.error(f"O campo de {ae.args[0]} não foi preenchido")
+        
         return jsonify(
-            {"error" : "O campo de email ou nickname não foi preenchido"}
+            {"error" : f"O campo de {ae.args[0]} não foi preenchido"}
         ), 403
     
     try:
         user = autenticar(email=email, nickname=nickname, senha=senha)
+    
     except:
+        current_app.logger.error("Email, nickname ou senha incorretos")
         return jsonify(
+            
             {"error" : "Email, nickname ou senha incorretos"}
         ), 401
     
     try:
         db.session.add(user)
         db.session.commit()
-        return jsonify({'token' : validator.get_token(user.id)}), 200
-    except:
+        token =  validator.get_token(user.id)
+        current_app.logger.info("Usuário logado com sucesso!")
+        return jsonify({'token' :token}), 200
+    except Exception as e :
         db.session.rollback()
+        current_app.logger.exception(f'Erro durante o login {e}')
         return jsonify({"error": "Ocorreu um erro durante o login"}), 500
     
     
@@ -122,9 +135,15 @@ def get_user(current_user):
         - 403 : Forbidden - Se o token de autenticação não é válido
         - 500 : Internal Server Error - Se houve algum erro durante a listagem dos dados
     """
+    
+    current_app.logger.info(f"Requisição de GET do usuário {current_user.id} recebida")
+    
     try:
+        user_dict = current_user.to_dict()
+        current_app.logger.info(f"Usuário {current_user.id} retornado com sucesso")
         return jsonify(current_user.to_dict()), 200
-    except:
+    except Exception as e:
+        current_app.logger.exception(e)
         return jsonify({"error": "Ocorreu um erro durante a listagem dos dados"}), 500
 
 @users_bp.route('/usuarios', methods=['PUT'])
@@ -148,10 +167,12 @@ def update_user(current_user):
     - 500 : Internal Server Error - Se houve algum erro durante a atualização dos dados
     """
     
+    current_app.logger.info(f"Requisição de PUT do usário {current_user.id} recebida com os parametros : {request.json}")
+    
     dados = request.json
     
     updated_user_json = {
-        'id': current_user.id,  # Mantém o ID atual do usuário
+        'id': current_user.id,
         'email': dados.get('email', current_user.email),
         'senha': dados.get('senha', current_user.senha),
         'nickname': dados.get('nickname', current_user.nickname),
@@ -161,6 +182,9 @@ def update_user(current_user):
     
     updated_user = validator.valide_user(updated_user_json)
     
+    if not isinstance(updated_user, Usuario):
+        return updated_user
+    
     update_user.email = updated_user.email
     update_user.senha = updated_user.senha
     update_user.nickname = updated_user.nickname
@@ -169,10 +193,12 @@ def update_user(current_user):
     
     try:
         db.session.commit()
+        current_app.logger.info(f"Usuário {current_user.id} atualizado com sucesso! ")
         return jsonify({'message': 'Usuário atualizado com sucesso'}), 200
     
     except Exception as e:
         db.session.rollback()
+        current_app.logger.error(f"Erro ao tentar atualizar o usuário, {e}")
         return jsonify({"error": str(e)}), 500
 
 @users_bp.route('/usuarios', methods=['DELETE'])
@@ -190,6 +216,7 @@ def delete_user(current_user):
     - 403 : Forbidden - Se o token de autenticação não é válido
     - 500 : Internal Server Error - Se houve algum erro durante a exclusão do usuário
     """
+    current_app.logger.info(f"Requisição DELETE do usuário {current_user.id}")
     try:
         db.session.delete(current_user)
         db.session.commit()
