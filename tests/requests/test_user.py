@@ -76,3 +76,19 @@ def test_update_user(client, user_token):
     assert response.status_code == 200
     assert 'nome' in response.json.get('atualizados')
 
+def test_find_user_by_nickanme(client, user_token):
+    response = client.get(
+        '/usuarios/user1nick', headers={'Authorization': f'Bearer {user_token}'})
+    assert response.status_code == 200
+    assert 'id' in response.json
+    assert 'email' in response.json
+    assert 'nickname' in response.json
+    assert 'nome' in response.json
+    assert 'sobrenome' in response.json
+
+def test_delete_user(client, user_token):
+    response = client.delete(
+        '/usuarios', headers={'Authorization': f'Bearer {user_token}'})
+    assert response.status_code == 200
+    assert 'message' in response.json
+    

@@ -281,9 +281,13 @@ def get_user_by_nickname(current_user, nickname):
     - 500 : Internal Server Error - Se houve algum erro durante a busca do usuário
     """
 
+    current_app.logger.info(f"Buscando o nickname: {nickname}")
+    
     user = Usuario.query.filter_by(nickname=nickname).first()
 
     if not user:
+        current_app.logger.error(f"Usuário {nickname} não encontrado")
         return jsonify({"error": "Usuário não encontrado"}), 404
 
+    current_app.logger.info(f"Usuário {nickname} encontrado com sucesso")
     return jsonify(user.to_dict()), 200
