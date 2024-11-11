@@ -65,13 +65,6 @@ refresh_dependencies() {
   $PIP_EXEC install -r requirements.txt
 }
 
-remove (){
-  if [ -d "$VENV_DIR" ]; then
-    $PIP_EXEC uninstall -y $@
-    $PIP_EXEC freeze > requirements.txt
-    echo "Dependencies removed and saved to requirements.txt"
-  else
-}
 
 gitflow () {
   if [ -d "$VENV_DIR" ]; then
@@ -101,6 +94,5 @@ case "$1" in
   refresh ) refresh_dependencies ;;
   gitflow) gitflow ;;
   clear) clear ;;
-  remove) shift ; remove $@ ;;
   *) shift; command $@ ;;  # Qualquer comando não identificado será passado para o ambiente virtual usando o Python da venv
 esac
