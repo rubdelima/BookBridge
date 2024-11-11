@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, current_app
 from src.database.models import db, Livro, Avaliacao
 from src.database import model_validation as validator
 import secrets
-
+from sqlalchemy import or_
 books_bp = Blueprint('livros', __name__)
 
 
@@ -78,13 +78,14 @@ def get_livro(livro_id):
     current_app.logger.info(f"Requisição para busca do livro de id {livro_id}")
     
     if (livro := Livro.query.get(livro_id)):
-        current_app.logger.info(f"Livro encontrado com sucesso: {livro.to_dict()}")
-        return jsonify({"livro" : livro.to_dict()}), 200
+        livro_dict = livro.to_dict()
+        current_app.logger.info(f"Livro encontrado com sucesso: {livro_dict}")
+        return jsonify({"livro" : livro_dict}), 200
     
     current_app.logger.error("Livro não encontrado")
     return jsonify({"error" : "Livro não encontrado"}), 404
 
-@books_bp.route('/livros/buscar', methods=['POST'])
+@books_bp.route('/livros/buscar', methods=['GET'])
 def get_livros():
     """
     ## Endpoint para busca de um livro a seguir pelos parâmetros indicados
@@ -112,22 +113,32 @@ def get_livros():
 
     """
 
-    data = request.json
-
-    current_app.logger.info(f"Requisição de POST de busca de livros recebida: {data}")
+    current_app.logger.info(f"Requisição de POST de busca de livros recebida: {request.args}")
     
-    nome = data.get('nome')
-    autor = data.get('autor')
-    genero = data.get('genero')
+    nome = request.args.get('nome')
+    autor = request.args.get('autor')
+    genero = request.args.get('genero')
 
     if not (nome or autor or genero):
         current_app.logger.error("Parâmetros de busca inválidos")
         return jsonify({'error': 'Parâmetros de busca inválidos'}), 400
 
     try:
-        livros = Livro.query.filter(
-            Livro.nome.contains(nome) | Livro.autor.contains(autor) | Livro.genero.contains(genero)
-        ).all()
+        query = Livro.query
+        filters = []
+
+        if nome:
+            filters.append(Livro.nome.contains(nome))
+        if autor:
+            filters.append(Livro.autor.contains(autor))
+        if genero:
+            filters.append(Livro.genero.contains(genero))
+
+        if filters:
+            query = query.filter(or_(*filters))
+
+        livros = query.all()
+        
         if len(livros) == 0:
             current_app.logger.info("Nenhum livro encontrado com os dados fornecidos")
             return jsonify(livros=[]), 200

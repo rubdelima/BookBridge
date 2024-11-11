@@ -1,7 +1,7 @@
 from flask import Flask
 from src.database.models import db
 from src.routes.user import users_bp
-# from src.routes.books import books_bp
+from src.routes.books import books_bp
 import logging
 from datetime import datetime, timezone
 
@@ -16,7 +16,7 @@ def create_app():
     db.init_app(app)
 
     app.register_blueprint(users_bp)
-    # app.register_blueprint(books_bp)
+    app.register_blueprint(books_bp)
     
     # Configuração do Logger
     file_handler = logging.FileHandler('./app.log')

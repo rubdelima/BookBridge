@@ -73,6 +73,10 @@ gitflow () {
   fi
 }
 
+clear (){
+  find . -type d -name "__pycache__" -exec rm -r {} +
+}
+
 command() {
   if [ -d "$VENV_DIR" ]; then
     $PYTHON_EXEC $@
@@ -88,5 +92,6 @@ case "$1" in
   install) shift; install $@;;
   refresh ) refresh_dependencies ;;
   gitflow) gitflow ;;
+  clear) clear ;;
   *) shift; command $@ ;;  # Qualquer comando não identificado será passado para o ambiente virtual usando o Python da venv
 esac
