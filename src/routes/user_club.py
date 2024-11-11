@@ -1,8 +1,6 @@
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, jsonify, current_app
 from src.database.models import db, Usuario, Clube, Participa
 from src.database import model_validation as validator
-import secrets
-from datetime import datetime, timezone
 
 user_club_bp = Blueprint('/usuarios/clube', __name__)
 
