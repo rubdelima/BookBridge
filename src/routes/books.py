@@ -5,7 +5,7 @@ import secrets
 from sqlalchemy import or_
 from flask_caching import Cache
 
-cache = Cache(current_app)
+cache = Cache()
 
 books_bp = Blueprint('livros', __name__)
 

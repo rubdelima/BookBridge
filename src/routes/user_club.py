@@ -3,7 +3,7 @@ from src.database.models import db, Usuario, Clube, Participa
 from src.database import model_validation as validator
 from flask_caching import Cache
 
-cache = Cache(current_app)
+cache = Cache()
 
 user_club_bp = Blueprint('/usuarios/clube', __name__)
 

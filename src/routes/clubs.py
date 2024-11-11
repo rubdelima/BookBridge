@@ -5,7 +5,7 @@ import secrets
 from datetime import datetime, timezone
 from flask_caching import Cache
 
-cache = Cache(current_app)
+cache = Cache()
 
 clubs_bp = Blueprint('clubes', __name__)
 

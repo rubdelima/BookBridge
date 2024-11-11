@@ -4,9 +4,9 @@ from src.database import model_validation as validator
 from sqlalchemy.sql import func
 from flask_caching import Cache
 
-cache = Cache(current_app)
+cache = Cache()
 
-club_books_bp = Blueprint('usuarios', __name__)
+club_books_bp = Blueprint('clube/livros', __name__)
 
 def validacao_books_club(data, user_id):
     """Validações para adicionar/editar um livro ao grupo de um usuário"""

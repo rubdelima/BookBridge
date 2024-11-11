@@ -10,32 +10,42 @@ users_bp = Blueprint('usuarios', __name__)
 @users_bp.route('/usuarios', methods=['POST'])
 def post_user():
     """
-    ## Endpoint para criação de um novo usuário.
-
-    ### Parâmetros de Entrada:
-
-    - email : str (email do novo usuário)
-
-    - senha : str (senha do novo usuário)
-
-    - nickname : str (nickname do novo usuário)
-
-    - nome : str (nome do novo usuário)
-
-    - sobrenome : str (sobrenome do novo usuário)
-
-
-    ### Retorno:
-
-    - 201 : Created - Se o usuário foi criado com sucesso
-
-    - 401 : Invalid - Se já houver um outro usuário já cadastrado com o mesmo nickname ou email
-
-    - 403 : Forbidden - Se algum campo não foi preenchido, ou foi preenchido incorretamente
-
-    - 500 : Internal Server Error - Se houve algum erro durante a criação do usuário
-
-
+    Criação de um novo usuário
+    ---
+    tags:
+      - Usuário
+    parameters:
+      - in: body
+        name: body
+        required: true
+        description: Dados do novo usuário
+        schema:
+          type: object
+          properties:
+            email:
+              type: string
+              example: "exemplo@dominio.com"
+            senha:
+              type: string
+              example: "Senha@123"
+            nickname:
+              type: string
+              example: "apelido123"
+            nome:
+              type: string
+              example: "João"
+            sobrenome:
+              type: string
+              example: "Silva"
+    responses:
+      201:
+        description: Usuário criado com sucesso
+      401:
+        description: E-mail ou nickname já cadastrado
+      403:
+        description: Campo(s) não preenchido(s) corretamente
+      500:
+        description: Erro interno no servidor
     """
 
     current_app.logger.info(
@@ -64,26 +74,39 @@ def post_user():
 @users_bp.route('/usuarios/login/', methods=['GET'])
 def login_user():
     """
-    ## Endpoint para login de um usuário.
-
-    ### Parâmetros de Entrada:
-    - email : Optional[str] (email do usuário)
-
-    - nickname : Optional[str] (nickname do usuário)
-
-    - senha : str (senha do usuário)
-
-
-    ### Códigos de Retorno:
-    - 200 : OK - Se o login foi realizado com sucesso
-
-    - 401 : Unauthorized - Se o email, nickname ou senha estão incorretos
-
-    - 500 : Internal Server Error - Se houve algum erro durante o login
-
-
-    ### Retono:
-    - token : str (token de autenticação)
+    Login de um usuário
+    ---
+    tags:
+      - Usuário
+    parameters:
+      - in: body
+        name: body
+        required: true
+        description: Dados para login do usuário
+        schema:
+          type: object
+          properties:
+            email:
+              type: string
+              example: "usuario@example.com"
+            nickname:
+              type: string
+              example: "user123"
+            senha:
+              type: string
+              example: "Senha@123"
+    responses:
+      200:
+        description: Login realizado com sucesso
+        schema:
+          type: object
+          properties:
+            token:
+              type: string
+      401:
+        description: Email, nickname ou senha incorretos
+      500:
+        description: Erro interno no servidor
     """
 
     current_app.logger.info(
@@ -137,16 +160,27 @@ def login_user():
 @validator.check_jwt_token
 def get_user(current_user):
     """
-    Endpoint para listar os dados do usuário logado.
-
-    Parâmetros de Entrada:
-        - token : str (token de autenticação) Deve ser enviado no header de Authorization
-
-    Retorno:
-        - 200 : OK - Se os dados do usuário foram retornados com sucesso
-        - 401 : Not authorized - Se o token de autenticação está espirado
-        - 403 : Forbidden - Se o token de autenticação não é válido
-        - 500 : Internal Server Error - Se houve algum erro durante a listagem dos dados
+    Retorna os dados do usuário logado
+    ---
+    tags:
+      - Usuário
+    parameters:
+      - in: header
+        name: Authorization
+        required: true
+        description: Token de autenticação (formato: Bearer token)
+        type: string
+    responses:
+      200:
+        description: Dados do usuário retornados com sucesso
+        schema:
+          type: object
+      401:
+        description: Token expirado
+      403:
+        description: Token de autenticação inválido
+      500:
+        description: Erro durante a listagem dos dados do usuário
     """
 
     current_app.logger.info(
@@ -168,21 +202,62 @@ def get_user(current_user):
 @validator.check_jwt_token
 def update_user(current_user):
     """
-    Endpoint para atualizar os dados do usuário logado.
-
-    Parâmetros de Entrada:
-        - token : str (token de autenticação) Deve ser enviado no header de Authorization
-        - email : Optional[str] (email do novo usuário)
-        - senha : Optional[str] (senha do novo usuário)
-        - nickname : Optional[str] (nickname do novo usuário)
-        - nome : Optional[str] (nome do novo usuário)
-        - sobrenome : Optional[str] (sobrenome do novo usuário)
-
-    Retorno:
-    - 200 : OK - Se os dados do usuário foram atualizados com sucesso
-    - 401 : Not authorized - Se o token de autenticação está espirado
-    - 403 : Forbidden - Se o token de autenticação não é válido
-    - 500 : Internal Server Error - Se houve algum erro durante a atualização dos dados
+    Atualiza os dados do usuário logado
+    ---
+    tags:
+      - Usuário
+    parameters:
+      - in: header
+        name: Authorization
+        required: true
+        description: Token de autenticação (formato: Bearer token)
+        type: string
+      - in: body
+        name: body
+        required: true
+        description: Dados do usuário para atualização
+        schema:
+          type: object
+          properties:
+            email:
+              type: string
+              example: "novoemail@example.com"
+            senha:
+              type: string
+              example: "NovaSenha@123"
+            nickname:
+              type: string
+              example: "novonick123"
+            nome:
+              type: string
+              example: "NovoNome"
+            sobrenome:
+              type: string
+              example: "NovoSobrenome"
+    responses:
+      200:
+        description: Usuário atualizado com sucesso
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+            atualizados:
+              type: array
+              items:
+                type: string
+            erros:
+              type: array
+              items:
+                type: string
+      400:
+        description: Não foi possível atualizar os campos
+      401:
+        description: Token expirado
+      403:
+        description: Token de autenticação inválido
+      500:
+        description: Erro durante a atualização dos dados
     """
 
     current_app.logger.info(
@@ -242,16 +317,25 @@ def update_user(current_user):
 @validator.check_jwt_token
 def delete_user(current_user):
     """
-    ## Endpoint para a exclusão de um usuario
-
-    Parâmetros de Entrada:
-        - token : str (token de autenticação) Deve ser enviado no header de Authorization
-
-    Retorno:
-    - 200 : OK - Se o usuário foi excluído com sucesso
-    - 401 : Not authorized - Se o token de autenticação está espirado
-    - 403 : Forbidden - Se o token de autenticação não é válido
-    - 500 : Internal Server Error - Se houve algum erro durante a exclusão do usuário
+    Exclusão de um usuário
+    ---
+    tags:
+      - Usuário
+    parameters:
+      - in: header
+        name: Authorization
+        required: true
+        description: Token de autenticação (formato: Bearer token)
+        type: string
+    responses:
+      200:
+        description: Usuário excluído com sucesso
+      401:
+        description: Token expirado
+      403:
+        description: Token de autenticação inválido
+      500:
+        description: Erro durante a exclusão do usuário
     """
     current_app.logger.info(f"Requisição DELETE do usuário {current_user.id}")
     try:
@@ -267,18 +351,34 @@ def delete_user(current_user):
 @validator.check_jwt_token
 def get_user_by_nickname(current_user, nickname):
     """
-    Endpoint para buscar um usuário pelo nickname.
-
-    Parâmetros de Entrada:
-        - token : str (token de autenticação) Deve ser enviado no header de Authorization
-        - nickname : str (nickname do usuário)
-
-    Retorno:
-    - 200 : OK - Se o usuário foi encontrado com sucesso
-    - 401 : Not authorized - Se o token de autenticação está espirado
-    - 403 : Forbidden - Se o token de autenticação não é válido
-    - 404 : Not Found - Se o usuário não foi encontrado
-    - 500 : Internal Server Error - Se houve algum erro durante a busca do usuário
+    Busca um usuário pelo nickname
+    ---
+    tags:
+      - Usuário
+    parameters:
+      - in: header
+        name: Authorization
+        required: true
+        description: Token de autenticação (formato: Bearer token)
+        type: string
+      - in: path
+        name: nickname
+        required: true
+        description: Nickname do usuário
+        type: string
+    responses:
+      200:
+        description: Usuário encontrado com sucesso
+        schema:
+          type: object
+      401:
+        description: Token expirado
+      403:
+        description: Token de autenticação inválido
+      404:
+        description: Usuário não encontrado
+      500:
+        description: Erro durante a busca do usuário
     """
 
     current_app.logger.info(f"Buscando o nickname: {nickname}")

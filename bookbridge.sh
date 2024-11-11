@@ -78,6 +78,14 @@ clear (){
   find . -type d -name "__pycache__" -exec rm -r {} +
 }
 
+flask (){
+  if [ -d "$VENV_DIR" ]; then
+    $PYTHON_EXEC -m  src.app
+  else
+    echo "Virtual environment $VENV_DIR not found. Please run 'bookbridge build' first."
+  fi
+}
+
 command() {
   if [ -d "$VENV_DIR" ]; then
     $PYTHON_EXEC $@
@@ -94,5 +102,6 @@ case "$1" in
   refresh ) refresh_dependencies ;;
   gitflow) gitflow ;;
   clear) clear ;;
+  flask) flask ;;
   *) shift; command $@ ;;  # Qualquer comando não identificado será passado para o ambiente virtual usando o Python da venv
 esac
