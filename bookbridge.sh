@@ -43,6 +43,7 @@ start() {
 }
 
 test() {
+  rm -rf app.log
   if [ -d "$VENV_DIR" ]; then
     $PYTHON_EXEC -m pytest tests/
   else
@@ -64,6 +65,19 @@ refresh_dependencies() {
   $PIP_EXEC install -r requirements.txt
 }
 
+
+gitflow () {
+  if [ -d "$VENV_DIR" ]; then
+    $PYTHON_EXEC -m utils.gitflow > diagram.mmd
+  else
+    echo "Virtual environment $VENV_DIR not found. Please run 'bookbridge build' first."
+  fi
+}
+
+clear (){
+  find . -type d -name "__pycache__" -exec rm -r {} +
+}
+
 command() {
   if [ -d "$VENV_DIR" ]; then
     $PYTHON_EXEC $@
@@ -76,7 +90,9 @@ case "$1" in
   build) build ;;
   start) start ;;
   test)  test ;;
-  install) install ;;
+  install) shift; install $@;;
   refresh ) refresh_dependencies ;;
+  gitflow) gitflow ;;
+  clear) clear ;;
   *) shift; command $@ ;;  # Qualquer comando não identificado será passado para o ambiente virtual usando o Python da venv
 esac

@@ -22,6 +22,7 @@ def autenticar(senha: str, email: Optional[str] = None, nickname: Optional[str] 
     ).first()
     
     # Verifica se o usuário foi encontrado e se a senha está correta
+    print(user.senha, senha, check_password_hash(user.senha, senha))
     assert user and check_password_hash(user.senha, senha)
     
     return user

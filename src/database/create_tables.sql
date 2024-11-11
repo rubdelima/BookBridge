@@ -47,8 +47,8 @@ CREATE TABLE Avaliacao (
     livro_id VARCHAR2(10) NOT NULL,
     descricao VARCHAR2(1000),
     estrelas INTEGER CHECK (estrelas BETWEEN 0 AND 5),
-    data_avaliacao DATETIME NOT NULL,
+    data_avaliacao TIMESTAMP NOT NULL,
     PRIMARY KEY (avaliador_id, livro_id),
-    FOREIGN KEY (avaliador) REFERENCES Usuario(id),
-    FOREIGN KEY (livro) REFERENCES Livro(id)
+    FOREIGN KEY (avaliador_id) REFERENCES Usuario(id),
+    FOREIGN KEY (livro_id) REFERENCES Livro(id)
 );

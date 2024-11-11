@@ -1,3 +1,7 @@
 .bookbridge
 *cache*
 instance
+diagram.mmd
+app.log
+arquivos.txt
+pytest_result.txt

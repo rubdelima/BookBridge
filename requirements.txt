@@ -1,7 +1,11 @@
 blinker==1.9.0
+cffi==1.17.1
 click==8.1.7
+cryptography==43.0.3
 Flask==3.0.3
 Flask-SQLAlchemy==3.1.1
+gitdb==4.0.11
+GitPython==3.1.43
 greenlet==3.1.1
 iniconfig==2.0.0
 itsdangerous==2.2.0
@@ -9,7 +13,10 @@ Jinja2==3.1.4
 MarkupSafe==3.0.2
 packaging==24.2
 pluggy==1.5.0
+pycparser==2.22
+PyJWT==2.9.0
 pytest==8.3.3
+smmap==5.0.1
 SQLAlchemy==2.0.36
 typing_extensions==4.12.2
 Werkzeug==3.1.3
