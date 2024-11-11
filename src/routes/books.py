@@ -3,9 +3,6 @@ from src.database.models import db, Livro, Avaliacao
 from src.database import model_validation as validator
 import secrets
 from sqlalchemy import or_
-from flask_caching import Cache
-
-cache = Cache()
 
 books_bp = Blueprint('livros', __name__)
 
@@ -85,7 +82,6 @@ def post_livro(current_user):
         return jsonify({"error": str(e)}), 500
 
 @books_bp.route('/livros/<livro_id>', methods=['GET'])
-@cache.cached(timeout=10, query_string=True)
 def get_livro(livro_id):
     """
     Endpoint para busca de um livro específico pelo seu ID.
@@ -107,18 +103,28 @@ def get_livro(livro_id):
       500:
         description: Erro durante a busca do livro.
     """
+    
+    cache_key = f"livro_{livro_id}"
+    
+    cache = current_app.cache
+    livro = cache.get(cache_key)
+    
+    if livro:
+      current_app.logger.info(f"Cache hit para livro com id {livro_id}")
+      return jsonify({"livro": livro}), 200
+    
     current_app.logger.info(f"Requisição para busca do livro de id {livro_id}")
     
     if (livro := Livro.query.get(livro_id)):
         livro_dict = livro.to_dict()
         current_app.logger.info(f"Livro encontrado com sucesso: {livro_dict}")
+        cache.set(cache_key, livro_dict, timeout=10)
         return jsonify({"livro" : livro_dict}), 200
     
     current_app.logger.error("Livro não encontrado")
     return jsonify({"error" : "Livro não encontrado"}), 404
 
 @books_bp.route('/livros/buscar', methods=['GET'])
-@cache.cached(timeout=10)
 def get_livros():
     """
     Endpoint para busca de livros com base em parâmetros.

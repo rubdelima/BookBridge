@@ -53,8 +53,10 @@ def create_app():
     app.logger.info(f"API BookBridge Iniciada")
     
     # Configuração do Cache
-    cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
-    cache.init_app(app)
+    app.config['CACHE_TYPE'] = 'SimpleCache'
+    app.config['CACHE_DEFAULT_TIMEOUT'] = 10
+    cache = Cache(app)
+    app.cache = cache
     
     app.logger.info("Sistema de Cache Inicializado")
     
