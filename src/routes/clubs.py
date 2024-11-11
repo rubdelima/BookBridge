@@ -13,16 +13,55 @@ clubs_bp = Blueprint('clubes', __name__)
 @validator.check_jwt_token
 def post_club(current_user):
     """
-    ## Endpoint para criação de um novo livro.
+    Endpoint para criação de um novo clube de livros.
 
-    Parâmetros de Entrada:
-        - token : str (token de autenticação) - Deve ser enviado no header de Authorization
-        - nome: str (Nome do Clube de Livros)
-        - description : str (Descrição do Clube de Livros)
-    Retorno:
-        - 201 : OK - Se os dados do Clube de Livros foram criados com sucesso
-        - 403 : Usuário nâo autenticado
-        - 400 : Erro de validação
+    ---
+    parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Token de autenticação do usuário.
+        schema:
+          type: string
+      - name: body
+        in: body
+        required: true
+        description: Dados do novo clube de livros.
+        schema:
+          type: object
+          properties:
+            nome:
+              type: string
+              example: "Clube de Ficção Científica"
+            description:
+              type: string
+              example: "Clube para discutir livros de ficção científica."
+
+    responses:
+      201:
+        description: Clube de livros criado com sucesso.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Clube de Livros Criado com Sucesso!"
+      400:
+        description: Erro de validação.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: "O campo de nome não foi preenchido"
+      403:
+        description: Usuário não autenticado.
+      500:
+        description: Erro ao tentar salvar o clube.
     """
     
     data = request.json
@@ -68,15 +107,35 @@ def post_club(current_user):
 @cache.cached(timeout=10)
 def get_club(club_id):
     """
-    ## Endpoint para busca de um clube específico pelo seu id
-    
-    ### Parâmetros de Entrada:
+    Endpoint para busca de um clube específico pelo seu ID.
 
-    - club_id : str (ID do Clube)
+    ---
+    parameters:
+      - name: club_id
+        in: path
+        required: true
+        description: ID do clube a ser buscado.
+        schema:
+          type: string
 
-    ### Códigos de Retorno:
-        - 200 : OK - Se os dados do Clube de Livros foram encontrados
-        - 404 : Clube não encontrado
+    responses:
+      200:
+        description: Dados do clube retornados com sucesso.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                nome:
+                  type: string
+                description:
+                  type: string
+      404:
+        description: Clube não encontrado.
+      500:
+        description: Erro interno ao buscar clube.
     """
     
     try:
@@ -96,18 +155,47 @@ def get_club(club_id):
     return jsonify(club.to_dict()), 200
     
 @clubs_bp.route('/clubes/buscar', methods=['GET'])
+@cache.cached(timeout=10)
 def find_clubs():
     """
-    ## Endpoint para busca de clubes por nome
+    Endpoint para busca de clubes por nome.
 
-    ### Parâmetros de Entrada:
-        - nome : str (Nome do Clube)
+    ---
+    parameters:
+      - name: nome
+        in: query
+        required: true
+        description: Nome do clube a ser buscado.
+        schema:
+          type: string
 
-    ### Códigos de Retorno:
-        - 200 : OK - Se os dados do Clube de Livros foram encontrados
-        - 404 : Nenhum clube encontrado
-        - 500 : Erro interno
+    responses:
+      200:
+        description: Clubes encontrados com sucesso.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                clubes:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      nome:
+                        type: string
+                      description:
+                        type: string
+      404:
+        description: Nenhum clube encontrado.
+      400:
+        description: Campo de nome não preenchido.
+      500:
+        description: Erro ao buscar clubes.
     """
+    
     nome = request.args.get('nome')
     
     if not nome:
@@ -133,7 +221,45 @@ def find_clubs():
 @validator.check_jwt_token
 def update_club(current_user, club_id):
     """
-    
+    Endpoint para atualizar as informações de um clube.
+
+    ---
+    parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Token de autenticação do usuário.
+        schema:
+          type: string
+      - name: club_id
+        in: path
+        required: true
+        description: ID do clube a ser atualizado.
+        schema:
+          type: string
+      - name: body
+        in: body
+        required: true
+        description: Dados a serem atualizados no clube.
+        schema:
+          type: object
+          properties:
+            nome:
+              type: string
+              example: "Novo Nome do Clube"
+            description:
+              type: string
+              example: "Descrição atualizada do clube."
+
+    responses:
+      200:
+        description: Clube atualizado com sucesso.
+      403:
+        description: Usuário não é criador do clube.
+      404:
+        description: Clube não encontrado.
+      500:
+        description: Erro ao tentar atualizar o clube.
     """
     
     current_app.logger.info(
@@ -166,7 +292,32 @@ def update_club(current_user, club_id):
 @validator.check_jwt_token
 def delete_club(current_user, club_id):
     """
-    
+    Endpoint para deletar um clube.
+
+    ---
+    parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Token de autenticação do usuário.
+        schema:
+          type: string
+      - name: club_id
+        in: path
+        required: true
+        description: ID do clube a ser deletado.
+        schema:
+          type: string
+
+    responses:
+      200:
+        description: Clube deletado com sucesso.
+      403:
+        description: Usuário não é criador do clube.
+      404:
+        description: Clube não encontrado.
+      500:
+        description: Erro ao tentar deletar o clube.
     """
     
     current_app.logger.info(

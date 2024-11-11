@@ -168,7 +168,7 @@ def get_user(current_user):
       - in: header
         name: Authorization
         required: true
-        description: Token de autenticação (formato: Bearer token)
+        description: Token de autenticação (formato Bearer token)
         type: string
     responses:
       200:
@@ -210,7 +210,7 @@ def update_user(current_user):
       - in: header
         name: Authorization
         required: true
-        description: Token de autenticação (formato: Bearer token)
+        description: Token de autenticação (formato Bearer token)
         type: string
       - in: body
         name: body
@@ -325,7 +325,7 @@ def delete_user(current_user):
       - in: header
         name: Authorization
         required: true
-        description: Token de autenticação (formato: Bearer token)
+        description: Token de autenticação (formato Bearer token)
         type: string
     responses:
       200:
@@ -359,7 +359,7 @@ def get_user_by_nickname(current_user, nickname):
       - in: header
         name: Authorization
         required: true
-        description: Token de autenticação (formato: Bearer token)
+        description: Token de autenticação (formato Bearer token)
         type: string
       - in: path
         name: nickname

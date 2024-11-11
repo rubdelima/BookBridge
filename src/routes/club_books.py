@@ -36,12 +36,41 @@ def validacao_books_club(data, user_id):
 @validator.check_jwt_token
 def post_club_books(current_user):
     """
-    ## Endpoint para adicionar um livro ao grupo de um usuário.
+    Endpoint para adicionar um livro ao grupo de um usuário.
 
-    Parâmetros de Entrada:
-        - token : str (token de autenticação) - Deve ser enviado no header de Authorization
-        - clube_id : str - Identificação do Clube
-        - livro_id : str - Identificação do Livro
+    ---
+    parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Token de autenticação do usuário.
+        schema:
+          type: string
+      - name: body
+        in: body
+        required: true
+        description: Dados para adicionar um livro ao clube.
+        schema:
+          type: object
+          properties:
+            clube_id:
+              type: string
+              example: "12345"
+            livro_id:
+              type: string
+              example: "67890"
+
+    responses:
+      200:
+        description: Livro adicionado com sucesso ao grupo.
+      400:
+        description: Campo de entrada não preenchido.
+      403:
+        description: Usuário não participa do clube.
+      404:
+        description: Clube ou livro não encontrado.
+      500:
+        description: Erro ao adicionar o livro ao grupo.
     """
     data = request.get_json()
 
@@ -70,10 +99,43 @@ def post_club_books(current_user):
 @cache.cached(timeout=10)
 def list_club_books(clube_id):
     """
-    ## Endpoint para listar os livros adicionados ao grupo de um usuário.
+    Endpoint para listar os livros adicionados ao grupo de um usuário.
 
-    Parâmetros de Entrada:
-        - clube_id : str - Identificação do Clube
+    ---
+    parameters:
+      - name: clube_id
+        in: path
+        required: true
+        description: Identificação do Clube.
+        schema:
+          type: string
+
+    responses:
+      200:
+        description: Livros encontrados com sucesso no clube.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                books:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      nome:
+                        type: string
+                      autor:
+                        type: string
+                      media_avaliacoes:
+                        type: number
+                        example: 4.5
+      404:
+        description: Clube não encontrado.
+      500:
+        description: Erro ao buscar livros do clube.
     """
     
     current_app.logger.info(f"Requisição para listar os livros do grupo {clube_id} recebida")
@@ -117,7 +179,43 @@ def list_club_books(clube_id):
 @club_books_bp.route('/clube/livros', methods=['DELETE'])
 @validator.check_jwt_token
 def delete_club_books(current_user):
-    
+    """
+    Endpoint para remover um livro do grupo de um usuário.
+
+    ---
+    parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Token de autenticação do usuário.
+        schema:
+          type: string
+      - name: body
+        in: body
+        required: true
+        description: Dados para remover um livro do clube.
+        schema:
+          type: object
+          properties:
+            clube_id:
+              type: string
+              example: "12345"
+            livro_id:
+              type: string
+              example: "67890"
+
+    responses:
+      200:
+        description: Livro removido com sucesso do grupo.
+      400:
+        description: Campo de entrada não preenchido.
+      403:
+        description: Usuário não participa do clube.
+      404:
+        description: Clube ou livro não encontrado.
+      500:
+        description: Erro ao remover o livro do grupo.
+    """
     data = request.get_json()
 
     current_app.logger.info(f"Solicitaçao de Adição de Livro a um Grupo recebida, valores: {data}")

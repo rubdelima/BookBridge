@@ -10,7 +10,66 @@ user_club_bp = Blueprint('/usuarios/clube', __name__)
 @user_club_bp.route('/usuarios/clube/<clube_id>', methods=['POST'])
 @validator.check_jwt_token
 def post_user_clubs(current_user, clube_id):
-    
+    """
+    Adiciona o usuário autenticado a um clube.
+
+    ---
+    parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Token de autenticação do usuário.
+        schema:
+          type: string
+      - name: clube_id
+        in: path
+        required: true
+        description: Identificação do Clube.
+        schema:
+          type: string
+
+    responses:
+      201:
+        description: Participação adicionada com sucesso.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Participação adicionada com sucesso"
+      404:
+        description: Clube não encontrado.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: "Clube não encontrado"
+      409:
+        description: Registro de participação já existente.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: "Já existe um registro de participação"
+      500:
+        description: Erro interno ao salvar participação.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: "Erro ao salvar participação"
+    """
     
     current_app.logger.info(f"Requisição para adicionar o user {current_user.id} ao grupo {clube_id} recebida")
     
@@ -41,6 +100,58 @@ def post_user_clubs(current_user, clube_id):
 @user_club_bp.route('/usuarios/clube/<clube_id>', methods=['GET'])
 @cache.cached(timeout=10)
 def get_users_club(clube_id):
+    """
+    Lista os usuários de um clube específico.
+
+    ---
+    parameters:
+      - name: clube_id
+        in: path
+        required: true
+        description: Identificação do Clube.
+        schema:
+          type: string
+
+    responses:
+      200:
+        description: Usuários encontrados no clube.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                users:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      nome:
+                        type: string
+                      sobrenome:
+                        type: string
+      404:
+        description: Clube não encontrado.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: "Clube não encontrado"
+      500:
+        description: Erro interno no servidor.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: "Erro interno no servidor"
+    """
     
     current_app.logger.info(f"Requisição para listar os users do grupo {clube_id} recebida")
     
@@ -67,7 +178,56 @@ def get_users_club(clube_id):
 @user_club_bp.route('/usuarios/clube/<clube_id>', methods=['DELETE'])
 @validator.check_jwt_token
 def delete_user_clubs(current_user, clube_id):
-    
+    """
+    Remove o usuário autenticado de um clube.
+
+    ---
+    parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Token de autenticação do usuário.
+        schema:
+          type: string
+      - name: clube_id
+        in: path
+        required: true
+        description: Identificação do Clube.
+        schema:
+          type: string
+
+    responses:
+      200:
+        description: Participação removida com sucesso.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Participação removida com sucesso"
+      404:
+        description: Clube ou registro de participação não encontrado.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: "Clube não encontrado"
+      500:
+        description: Erro ao tentar remover participação.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: "Erro ao tentar remover participação"
+    """
     current_app.logger.info(f"Requisição para remover o user {current_user.id} do grupo {clube_id} recebida")
     
     if not (clube := Clube.query.get(clube_id)):
