@@ -4,7 +4,7 @@ from src.routes.user import users_bp
 from src.routes.books import books_bp
 import logging
 from datetime import datetime, timezone
-
+from flask_caching import Cache
 
 def create_app():
     app = Flask(__name__)
@@ -26,10 +26,16 @@ def create_app():
     app.logger.setLevel(logging.DEBUG)
     app.logger.info(f"API BookBridge Iniciada")
     
+    # Configuração do Cache
+    app.config['CACHE_TYPE'] = 'SimpleCache'
+    app.config['CACHE_DEFAULT_TIMEOUT'] = 5
+    cache = Cache(app)
+    app.logger.info("Sistema de Cache Inicializado")
+    
     with app.app_context():
         db.create_all()
 
-    return app
+    return app, cache
 
 if __name__ == "__main__":
     app = create_app()

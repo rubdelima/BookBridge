@@ -3,6 +3,9 @@ from src.database.models import db, Clube, Participa
 from src.database import model_validation as validator
 import secrets
 from datetime import datetime, timezone
+from flask_caching import Cache
+
+cache = Cache(current_app)
 
 clubs_bp = Blueprint('clubes', __name__)
 
@@ -61,8 +64,8 @@ def post_club(current_user):
         current_app.logger.error(f"Erro ao tentar salvar o clube: {e}")
         return jsonify({'error': 'Erro ao tentar salvar o clube'}), 500
     
-
 @clubs_bp.route('/clubes/<club_id>', methods=['GET'])
+@cache.cached(timeout=10)
 def get_club(club_id):
     """
     ## Endpoint para busca de um clube específico pelo seu id

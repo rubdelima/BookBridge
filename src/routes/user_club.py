@@ -1,6 +1,9 @@
 from flask import Blueprint, jsonify, current_app
 from src.database.models import db, Usuario, Clube, Participa
 from src.database import model_validation as validator
+from flask_caching import Cache
+
+cache = Cache(current_app)
 
 user_club_bp = Blueprint('/usuarios/clube', __name__)
 
@@ -36,6 +39,7 @@ def post_user_clubs(current_user, clube_id):
 
 
 @user_club_bp.route('/usuarios/clube/<clube_id>', methods=['GET'])
+@cache.cached(timeout=10)
 def get_users_club(clube_id):
     
     current_app.logger.info(f"Requisição para listar os users do grupo {clube_id} recebida")

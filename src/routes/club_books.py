@@ -2,6 +2,9 @@ from flask import Blueprint, request, jsonify, current_app
 from src.database.models import db, Usuario, Livro, Avaliacao, Clube, Participa, Adiciona
 from src.database import model_validation as validator
 from sqlalchemy.sql import func
+from flask_caching import Cache
+
+cache = Cache(current_app)
 
 club_books_bp = Blueprint('usuarios', __name__)
 
@@ -64,6 +67,7 @@ def post_club_books(current_user):
         return jsonify({'error': 'Erro ao adicionar o livro ao grupo'}), 500
 
 @club_books_bp.route('/clube/<clube_id>/livros', methods=['GET'])
+@cache.cached(timeout=10)
 def list_club_books(clube_id):
     """
     ## Endpoint para listar os livros adicionados ao grupo de um usuário.

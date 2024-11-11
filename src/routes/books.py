@@ -3,6 +3,10 @@ from src.database.models import db, Livro, Avaliacao
 from src.database import model_validation as validator
 import secrets
 from sqlalchemy import or_
+from flask_caching import Cache
+
+cache = Cache(current_app)
+
 books_bp = Blueprint('livros', __name__)
 
 
@@ -54,6 +58,7 @@ def post_livro(current_user):
         return jsonify({"error": str(e)}), 500
 
 @books_bp.route('/livros/<livro_id>', methods=['GET'])
+@cache.cached(timeout=10, query_string=True)
 def get_livro(livro_id):
     """
     ## Endpoint para busca de um livro específico pelo seu id
@@ -86,6 +91,7 @@ def get_livro(livro_id):
     return jsonify({"error" : "Livro não encontrado"}), 404
 
 @books_bp.route('/livros/buscar', methods=['GET'])
+@cache.cached(timeout=10)
 def get_livros():
     """
     ## Endpoint para busca de um livro a seguir pelos parâmetros indicados
