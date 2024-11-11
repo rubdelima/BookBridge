@@ -115,3 +115,4 @@ CLUBE }o--o{ ADICIONAR : "contém"
 LIVRO }o--o{ ADICIONAR : "inclui"
 USUARIO }o--o{ AVALIAR : "faz"
 LIVRO }o--o{ AVALIAR : "é avaliado"
+```

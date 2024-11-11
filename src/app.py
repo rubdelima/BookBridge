@@ -26,7 +26,14 @@ def create_app():
     app.register_blueprint(users_bp)
     app.register_blueprint(user_club_bp)
     
-    # Iniciando o Swagger
+    # Configurando o Swagger
+    
+    app.config['SWAGGER'] = {
+        'title': 'BookBridge API',
+        'uiversion': 3,
+        'version': '1.0',
+        'description': 'Documentação da API para gerenciamento de livros e clubes de leitura.'
+    }
     Swagger(app)
     
     # Configuração do banco de dados    
