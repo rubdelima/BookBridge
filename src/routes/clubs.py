@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, current_app
-from src.database.models import db, Usuario, Livro, Clube, Participa, Adiciona, Avaliacao
+from src.database.models import db, Clube, Participa
 from src.database import model_validation as validator
 import secrets
 from datetime import datetime, timezone
