@@ -10,7 +10,6 @@ gitGraph
     branch feature/test_database
     commit id:"feature: books clubs"
     commit id:"fiature: add CI test"
-    checkout main
     commit id:"fix: fix requirement"
     commit id:"feature: create CRUD"
     commit id:"feature: build book "
@@ -20,9 +19,6 @@ gitGraph
     commit id:"feature"
     commit id:"test: fix user tests"
     commit id:"fix: remove cached f"
-    branch feature/logger
-    branch feature/tests
-    checkout feature/tests
     commit id:"feature: add log in "
 
 ```
