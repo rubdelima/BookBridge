@@ -43,6 +43,7 @@ start() {
 }
 
 test() {
+  rm -rf app.log
   if [ -d "$VENV_DIR" ]; then
     $PYTHON_EXEC -m pytest tests/
   else

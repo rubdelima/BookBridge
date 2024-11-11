@@ -14,12 +14,15 @@ gitGraph
     commit id:"fix: fix requirement"
     commit id:"feature: create CRUD"
     commit id:"feature: build book "
-    branch feature/build_routers
-    checkout feature/build_routers
     commit id:"fix: context secret "
-
-
-
-
+    branch feature/build_routers
+    commit id:"docs: add gitflow sc"
+    commit id:"feature"
+    commit id:"test: fix user tests"
+    commit id:"fix: remove cached f"
+    branch feature/logger
+    branch feature/tests
+    checkout feature/tests
+    commit id:"feature: add log in "
 
 ```

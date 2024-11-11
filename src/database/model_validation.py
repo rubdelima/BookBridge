@@ -11,12 +11,12 @@ def check_jwt_token(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         token = request.headers.get('Authorization')
-        if not token:
+        if (not token) or not(token.startswith('Bearer ')):
             current_app.logger.error('Token de autenticação é necessário')
             return jsonify({'message': 'Token de autenticação é necessário'}), 403
 
         try:
-            data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
+            data = jwt.decode(token.split(' ')[1], current_app.config['SECRET_KEY'], algorithms=['HS256'])
             current_user = Usuario.query.filter_by(id=data['user_id']).first()
         except jwt.ExpiredSignatureError:
             current_app.logger.error('Token expirado')
@@ -25,7 +25,7 @@ def check_jwt_token(f):
             current_app.logger.error('Token invalido')
             return jsonify({'message': 'Token inválido'}), 401
 
-        current_app.logger(f"Usuário {current_user.id} logado com sucesso! ")
+        current_app.logger.info(f"Usuário {current_user.id} logado com sucesso! ")
         return f(current_user, *args, **kwargs)
 
     return decorated
@@ -55,6 +55,7 @@ def valide_user(dados:dict)->Usuario:
     try:
         assert re.fullmatch(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', user_email)
     except:
+        current_app.logger.error("Formato de email inválido")
         return jsonify(
             {"error" : "Formato de email inválido"}
         ), 403
@@ -63,6 +64,7 @@ def valide_user(dados:dict)->Usuario:
     try:
         assert not Usuario.query.filter_by(email = user_email).first()
     except:
+        current_app.logger.error("Email já cadastrado")
         return jsonify(
             {"error" : "Email já cadastrado"}
         ), 401
