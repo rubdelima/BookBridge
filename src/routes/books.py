@@ -1,5 +1,5 @@
-from flask import Blueprint, request, jsonify
-from src.database.models import db, Usuario, Livro, Avaliacao
+from flask import Blueprint, request, jsonify, current_app
+from src.database.models import db, Livro, Avaliacao
 from src.database import model_validation as validator
 import secrets
 
@@ -28,12 +28,16 @@ def post_livro(current_user):
 
     data = request.json
 
+    current_app.logger.info(f"Requisição de POST de livro recebida: {data}")
+    
     try:
         assert (nome := data.get('nome')), ("nome",)
         assert (autor := data.get('autor')),  ('autor',)
         assert (genero := data.get('genero')), ('genero',)
         assert (descricao := data.get('descricao')), ("descricao", )
+    
     except AssertionError as e:
+        current_app.logger.error(f"O campo de {e.args[0]} não foi preenchido")
         return jsonify({'error': f"O campo de {e.args[0]} não foi preenchido"}), 400
 
     try:
@@ -41,14 +45,15 @@ def post_livro(current_user):
                       nome=nome, genero=genero, descricao=descricao)
         db.session.add(livro)
         db.session.commit()
+        current_app.logger.info("Livro criado com sucesso")
         return jsonify({'message': 'Livro criado com sucesso'}), 201
 
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception(e)
         return jsonify({"error": str(e)}), 500
 
 @books_bp.route('/livros/<livro_id>', methods=['GET'])
-@validator.check_jwt_token
 def get_livro(livro_id):
     """
     ## Endpoint para busca de um livro específico pelo seu id
@@ -70,10 +75,13 @@ def get_livro(livro_id):
     - livro : Livro
 
     """
+    current_app.logger.info(f"Requisição para busca do livro de id {livro_id}")
     
     if (livro := Livro.query.get(livro_id)):
+        current_app.logger.info(f"Livro encontrado com sucesso: {livro.to_dict()}")
         return jsonify({"livro" : livro.to_dict()}), 200
     
+    current_app.logger.error("Livro não encontrado")
     return jsonify({"error" : "Livro não encontrado"}), 404
 
 @books_bp.route('/livros/buscar', methods=['POST'])
@@ -106,21 +114,28 @@ def get_livros():
 
     data = request.json
 
+    current_app.logger.info(f"Requisição de POST de busca de livros recebida: {data}")
+    
     nome = data.get('nome')
     autor = data.get('autor')
     genero = data.get('genero')
 
     if not (nome or autor or genero):
+        current_app.logger.error("Parâmetros de busca inválidos")
         return jsonify({'error': 'Parâmetros de busca inválidos'}), 400
 
     try:
         livros = Livro.query.filter(
             Livro.nome.contains(nome) | Livro.autor.contains(autor) | Livro.genero.contains(genero)
         ).all()
+        if len(livros) == 0:
+            current_app.logger.info("Nenhum livro encontrado com os dados fornecidos")
+            return jsonify(livros=[]), 200
+        current_app.logger.info(f"Livros encontrados com sucesso")
         return jsonify(livros=[livro.to_dict() for livro in livros]), 200
     
     except Exception as e:
-        print(f"Erro durante a busca de livros: {e}")
+        current_app.logger.exception(f"Erro durante a busca de livros: {e}")
         return jsonify({'error': 'Erro interno no servidor'}), 500
 
 @books_bp.route('/livros/avaliar', methods=['POST'])
@@ -143,17 +158,21 @@ def post_avaliacao(current_user):
     """
 
     data = request.json
+    current_app.logger.info(f"Requisição de Post de Avaliação, {data}")
+    
     try:
         assert (livro_id := data.get('livro_id')), ("livro_id",)
         assert (descricao := data.get('descricao')), ("descricao",)
         assert (estrelas := int(data.get('estrelas'))), ("estrelas",)
         assert 0 <= estrelas <= 5, ("estrelas",)
     except AssertionError as e:
+        current_app.logger.error(f"O campo de {e.args[0]} não foi preenchido ou foi preenchido incorretamente")
         return jsonify({'error': f"O campo de {e.args[0]} não foi preenchido ou foi preenchido incorretamente"}), 400
 
     try:
         assert (Livro.query.get(livro_id))
     except:
+        current_app.logger.error("Livro não encontrado")
         return jsonify({"error": "Livro não encontrado"}), 404
 
     try:
@@ -166,8 +185,10 @@ def post_avaliacao(current_user):
 
         db.session.add(avaliacao)
         db.session.commit()
+        current_app.logger.info('Avaliação realizada com sucesso')
         return jsonify({'message': 'Avaliação realizada com sucesso'}), 201
 
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception(str(e))
         return jsonify({"error": str(e)}), 500
