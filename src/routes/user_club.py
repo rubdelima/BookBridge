@@ -1,9 +1,6 @@
 from flask import Blueprint, jsonify, current_app
 from src.database.models import db, Usuario, Clube, Participa
 from src.database import model_validation as validator
-from flask_caching import Cache
-
-cache = Cache()
 
 user_club_bp = Blueprint('/usuarios/clube', __name__)
 
@@ -98,7 +95,6 @@ def post_user_clubs(current_user, clube_id):
 
 
 @user_club_bp.route('/usuarios/clube/<clube_id>', methods=['GET'])
-@cache.cached(timeout=10)
 def get_users_club(clube_id):
     """
     Lista os usuários de um clube específico.
@@ -152,6 +148,12 @@ def get_users_club(clube_id):
                   type: string
                   example: "Erro interno no servidor"
     """
+    cache = current_app.cache
+    cache_key = f'/usuarios/clube/{clube_id}'
+    
+    if (users_list := cache.get(cache_key)):
+      current_app.logger.info(f"Usuários encontrados no cache: {users_list}")
+      return jsonify(users=users_list), 200
     
     current_app.logger.info(f"Requisição para listar os users do grupo {clube_id} recebida")
     
