@@ -11,7 +11,7 @@ CREATE TABLE Clube (
     id VARCHAR2(10) PRIMARY KEY,
     criador VARCHAR2(10),
     nome VARCHAR2(255) NOT NULL,
-    description VARCHAR2(500),
+    descricao VARCHAR2(500),
     FOREIGN KEY (criador) REFERENCES Usuario(id)
 );
 

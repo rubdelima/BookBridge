@@ -3,6 +3,7 @@ from src.database.models import db, Livro, Avaliacao
 from src.database import model_validation as validator
 import secrets
 from sqlalchemy import or_
+
 books_bp = Blueprint('livros', __name__)
 
 
@@ -10,20 +11,49 @@ books_bp = Blueprint('livros', __name__)
 @validator.check_jwt_token
 def post_livro(current_user):
     """
-    ## Endpoint para criação de um novo livro.
+    Endpoint para criação de um novo livro.
 
-    Parâmetros de Entrada:
-        - token : str (token de autenticação) - Deve ser enviado no header de Authorization
-        - nome : str - Título do livro
-        - autor : str - Autor do livro
-        - genero : str - Genero do livro
-        - descricao : str - Descrição do livro
+    ---
+    tags:
+      - Livros
+    parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Token de autenticação do usuário.
+        schema:
+          type: string
+      - name: body
+        in: body
+        required: true
+        description: Dados para criar um novo livro.
+        schema:
+          type: object
+          properties:
+            nome:
+              type: string
+              example: "Dom Casmurro"
+            autor:
+              type: string
+              example: "Machado de Assis"
+            genero:
+              type: string
+              example: "Romance"
+            descricao:
+              type: string
+              example: "Um clássico da literatura brasileira."
 
-    Retorno:
-        - 201 : OK - Se os dados do livro foram criados com sucesso
-        - 401 : Not authorized - Se o token de autenticação está espirado
-        - 403 : Forbidden - Se o token de autenticação não é válido
-        - 500 : Internal Server Error - Se houve algum erro durante a criação do livro
+    responses:
+      201:
+        description: Livro criado com sucesso.
+      400:
+        description: Campo de entrada não preenchido.
+      401:
+        description: Token de autenticação expirado.
+      403:
+        description: Token de autenticação inválido.
+      500:
+        description: Erro ao criar o livro.
     """
 
     data = request.json
@@ -56,30 +86,43 @@ def post_livro(current_user):
 @books_bp.route('/livros/<livro_id>', methods=['GET'])
 def get_livro(livro_id):
     """
-    ## Endpoint para busca de um livro específico pelo seu id
-    
-    ### Parâmetros de Entrada:
+    Endpoint para busca de um livro específico pelo seu ID.
 
-    - livro_id : str (ID do livro)
+    ---
+    tags:
+      - Livros
+    parameters:
+      - name: livro_id
+        in: path
+        required: true
+        description: ID do livro.
+        schema:
+          type: string
 
-    ### Códigos de Retorno:
-
-    - 200 : OK - Se os dados do livro foram retornados com sucesso
-
-    - 404 : Not Found - Se o livro não foi encontrado
-
-    - 500 : Internal Server Error - Se houve algum erro durante a busca do livro
-
-    ### Retorno
-
-    - livro : Livro
-
+    responses:
+      200:
+        description: Dados do livro retornados com sucesso.
+      404:
+        description: Livro não encontrado.
+      500:
+        description: Erro durante a busca do livro.
     """
+    
+    cache_key = f"livro_{livro_id}"
+    
+    cache = current_app.cache
+    livro = cache.get(cache_key)
+    
+    if livro:
+      current_app.logger.info(f"Cache hit para livro com id {livro_id}")
+      return jsonify({"livro": livro}), 200
+    
     current_app.logger.info(f"Requisição para busca do livro de id {livro_id}")
     
     if (livro := Livro.query.get(livro_id)):
         livro_dict = livro.to_dict()
         current_app.logger.info(f"Livro encontrado com sucesso: {livro_dict}")
+        cache.set(cache_key, livro_dict, timeout=10)
         return jsonify({"livro" : livro_dict}), 200
     
     current_app.logger.error("Livro não encontrado")
@@ -88,29 +131,56 @@ def get_livro(livro_id):
 @books_bp.route('/livros/buscar', methods=['GET'])
 def get_livros():
     """
-    ## Endpoint para busca de um livro a seguir pelos parâmetros indicados
+    Endpoint para busca de livros com base em parâmetros.
 
-    ### Parâmetros de Entrada:
+    ---
+    tags:
+      - Livros
+    parameters:
+      - name: nome
+        in: query
+        required: false
+        description: Título do livro.
+        schema:
+          type: string
+      - name: autor
+        in: query
+        required: false
+        description: Autor do livro.
+        schema:
+          type: string
+      - name: genero
+        in: query
+        required: false
+        description: Gênero do livro.
+        schema:
+          type: string
 
-
-    - nome : str (Título do livro)
-
-    - autor : str (Autor do livro)
-
-    - genero : str (Genero do livro)
-
-    ### Códigos de Retorno:
-
-    - 200 : OK - Se os dados do livro foram retornados com sucesso
-
-    - 400 : Bad Request - Se os parâmetros de busca estão incorretos
-
-    - 500 : Internal Server Error - Se houve algum erro durante a listagem dos dados
-
-    ### Retorno
-
-    - livros : list[Livros]
-
+    responses:
+      200:
+        description: Livros retornados com sucesso.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                livros:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      nome:
+                        type: string
+                      autor:
+                        type: string
+                      genero:
+                        type: string
+      400:
+        description: Parâmetros de busca inválidos.
+      500:
+        description: Erro durante a busca dos livros.
     """
 
     current_app.logger.info(f"Requisição de POST de busca de livros recebida: {request.args}")
@@ -153,19 +223,48 @@ def get_livros():
 @validator.check_jwt_token
 def post_avaliacao(current_user):
     """
-    ## Endpoint para criação de uma nova avaliação.
+    Endpoint para criação de uma nova avaliação.
 
-    Parâmetros de Entrada:
-        - token : str (token de autenticação) - Deve ser enviado no header de Authorization
-        - livro_id : str - Identificação do Livro
-        - descricao : str - Descrição da avaliação
-        - estrelas : int - Número de estrelas da avaliação (1-5)
+    ---
+    tags:
+      - Livros
+    parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Token de autenticação do usuário.
+        schema:
+          type: string
+      - name: body
+        in: body
+        required: true
+        description: Dados para criar uma avaliação.
+        schema:
+          type: object
+          properties:
+            livro_id:
+              type: string
+              example: "12345"
+            descricao:
+              type: string
+              example: "Excelente livro!"
+            estrelas:
+              type: integer
+              example: 5
 
-    Retorno:
-        - 200 : OK - Se os dados do usuário foram retornados com sucesso
-        - 401 : Not authorized - Se o token de autenticação está espirado
-        - 403 : Forbidden - Se o token de autenticação não é válido
-        - 500 : Internal Server Error - Se houve algum erro durante a listagem dos dados
+    responses:
+      201:
+        description: Avaliação criada com sucesso.
+      400:
+        description: Campo de entrada não preenchido ou incorreto.
+      401:
+        description: Token de autenticação expirado.
+      403:
+        description: Token de autenticação inválido.
+      404:
+        description: Livro não encontrado.
+      500:
+        description: Erro ao criar a avaliação.
     """
 
     data = request.json

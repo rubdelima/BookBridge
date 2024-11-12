@@ -16,7 +16,7 @@ Representa um clube de leitura criado por um usuário. Os atributos são:
 - `id`: VARCHAR2, chave primária.
 - `criador`: VARCHAR2, chave estrangeira referenciando `Usuario`.
 - `nome`: VARCHAR2, obrigatório.
-- `description`: VARCHAR2, opcional.
+- `descricao`: VARCHAR2, opcional.
 
 ### Livro
 Representa os livros que podem ser adicionados aos clubes de leitura. Os atributos são:
@@ -76,7 +76,7 @@ CLUBE {
     VARCHAR2 id
     VARCHAR2 criador
     VARCHAR2 nome
-    VARCHAR2 description
+    VARCHAR2 descricao
 }
 
 LIVRO {
@@ -115,3 +115,4 @@ CLUBE }o--o{ ADICIONAR : "contém"
 LIVRO }o--o{ ADICIONAR : "inclui"
 USUARIO }o--o{ AVALIAR : "faz"
 LIVRO }o--o{ AVALIAR : "é avaliado"
+```
