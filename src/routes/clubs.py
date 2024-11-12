@@ -3,9 +3,6 @@ from src.database.models import db, Clube, Participa
 from src.database import model_validation as validator
 import secrets
 from datetime import datetime, timezone
-from flask_caching import Cache
-
-cache = Cache()
 
 clubs_bp = Blueprint('clubes', __name__)
 
@@ -33,7 +30,7 @@ def post_club(current_user):
             nome:
               type: string
               example: "Clube de Ficção Científica"
-            description:
+            descricao:
               type: string
               example: "Clube para discutir livros de ficção científica."
 
@@ -69,7 +66,7 @@ def post_club(current_user):
     
     try:
         assert (nome := data.get('nome')), ("nome",)
-        assert (description := data.get('description')), ("description",)
+        assert (description := data.get('descricao')), ("descricao",)
     except AssertionError as e:
         current_app.logger.error(f"O campo de {e.args[0]} não foi preenchido")
         return jsonify({'error': f"O campo de {e.args[0]} não foi preenchido"}), 400
@@ -83,8 +80,8 @@ def post_club(current_user):
         club = Clube(
             id=club_id,
             nome=nome,
-            description=description,
-            usuario_criador_id=current_user.id
+            descricao=description,
+            criador=current_user.id
         )
         db.session.add(club)
         db.session.commit()
@@ -93,7 +90,6 @@ def post_club(current_user):
             Participa(
                 usuario_id=current_user.id,
                 clube_id=club_id,
-                data_participacao=datetime.now(tz=timezone.utc)
             )
         )
         db.session.commit()
@@ -104,7 +100,6 @@ def post_club(current_user):
         return jsonify({'error': 'Erro ao tentar salvar o clube'}), 500
     
 @clubs_bp.route('/clubes/<club_id>', methods=['GET'])
-@cache.cached(timeout=10)
 def get_club(club_id):
     """
     Endpoint para busca de um clube específico pelo seu ID.
@@ -137,6 +132,13 @@ def get_club(club_id):
       500:
         description: Erro interno ao buscar clube.
     """
+    cache_key = f"/clubes/{club_id}"
+    cache = current_app.cache
+    clube = cache.get(cache_key)
+    
+    if clube:
+      current_app.logger.info(f"Clube encontrado no cache: {clube}")
+      return jsonify(clube), 200
     
     try:
         assert (club := request.json.get('club_id'))
@@ -150,12 +152,12 @@ def get_club(club_id):
     if not club:
         current_app.logger.error("Clube não encontrado")
         return jsonify({'error': 'Clube não encontrado'}), 404
-    
-    current_app.logger.info(f"Clube encontrado com sucesso: {club.to_dict()}")
-    return jsonify(club.to_dict()), 200
+    club_dict = club.to_dict()
+    current_app.logger.info(f"Clube encontrado com sucesso: {club_dict}")
+    cache.set(cache_key, club_dict, timeout=10)
+    return jsonify(club_dict), 200
     
 @clubs_bp.route('/clubes/buscar', methods=['GET'])
-@cache.cached(timeout=10)
 def find_clubs():
     """
     Endpoint para busca de clubes por nome.
@@ -247,7 +249,7 @@ def update_club(current_user, club_id):
             nome:
               type: string
               example: "Novo Nome do Clube"
-            description:
+            descricao:
               type: string
               example: "Descrição atualizada do clube."
 
@@ -267,7 +269,7 @@ def update_club(current_user, club_id):
     )
     
     
-    if not (club := Clube.query.get(current_user)):
+    if not (club := Clube.query.get(club_id)):
         current_app.logger.error(f'Clube {club_id} não encontrado')
         return jsonify({'error': 'Clube não encontrado'}), 404
 
@@ -324,7 +326,7 @@ def delete_club(current_user, club_id):
         f'Requisição de DELETE do clube {club_id} feito pelo user {current_user.id}'
     )
     
-    if not (club := Clube.query.get(current_user)):
+    if not (club := Clube.query.get(club_id)):
         current_app.logger.error(f'Clube {club_id} não encontrado')
         return jsonify({'error': 'Clube não encontrado'}), 404
     

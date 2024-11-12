@@ -2,9 +2,6 @@ from flask import Blueprint, request, jsonify, current_app
 from src.database.models import db, Usuario, Livro, Avaliacao, Clube, Participa, Adiciona
 from src.database import model_validation as validator
 from sqlalchemy.sql import func
-from flask_caching import Cache
-
-cache = Cache()
 
 club_books_bp = Blueprint('clube/livros', __name__)
 
@@ -19,7 +16,7 @@ def validacao_books_club(data, user_id):
         return jsonify({'error': f"O campo de {e.args[0]} não foi preenchido"}), 400
     
     if not (Clube.query.get(clube_id)):
-        current_app.logger.error(f'Clube {data["club_id"]} não encontrado')
+        current_app.logger.error(f'Clube {data["clube_id"]} não encontrado')
         return jsonify({'error': 'Clube não encontrado'}), 404
     
     if not (Livro.query.get(book_id)):
@@ -96,7 +93,6 @@ def post_club_books(current_user):
         return jsonify({'error': 'Erro ao adicionar o livro ao grupo'}), 500
 
 @club_books_bp.route('/clube/<clube_id>/livros', methods=['GET'])
-@cache.cached(timeout=10)
 def list_club_books(clube_id):
     """
     Endpoint para listar os livros adicionados ao grupo de um usuário.
@@ -138,6 +134,15 @@ def list_club_books(clube_id):
         description: Erro ao buscar livros do clube.
     """
     
+    cache_key = f"/clube/{clube_id}/livros"
+    
+    cache = current_app.cache
+    livros = cache.get(cache_key)
+    
+    if livros:
+      current_app.logger.info(f"Cache hit para livros do grupo {clube_id}")
+      return jsonify({"livros": livros}), 200
+    
     current_app.logger.info(f"Requisição para listar os livros do grupo {clube_id} recebida")
     
     clube = Clube.query.get(clube_id)
@@ -170,7 +175,8 @@ def list_club_books(clube_id):
         ]
 
         current_app.logger.info(f'Livros encontrados no clube {clube_id}: {books_list}')
-        return jsonify(books=books_list), 200
+        cache.set(cache_key, books_list, timeout=10)
+        return jsonify(livros=books_list), 200
 
     except Exception as e:
         current_app.logger.exception(f'Erro ao buscar livros do clube {clube_id}: {e}')
@@ -228,7 +234,7 @@ def delete_club_books(current_user):
     book_id, clube_id, _ = validacao
     
     try:
-        adiciona = Adiciona.query.get((current_user.id, book_id, clube_id))
+        adiciona = Adiciona.query.filter_by(usuario_id=current_user.id, livro_id=book_id, clube_id=clube_id).first()
         db.session.delete(adiciona)
         db.session.commit()
         current_app.logger.info(f'Livro removido com sucesso do grupo {clube_id} pelo user {current_user.id} do livro {book_id}')

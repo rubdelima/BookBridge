@@ -21,7 +21,7 @@ class Clube(DatabaseModel):
     id = db.Column(db.String(10), primary_key=True)
     criador = db.Column(db.String(10), db.ForeignKey('usuario.id'), nullable=False)
     nome = db.Column(db.String(255), nullable=False)
-    description = db.Column(db.String(500))
+    descricao = db.Column(db.String(500))
 
 class Livro(DatabaseModel):
     __tablename__ = 'livro'

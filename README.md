@@ -63,7 +63,7 @@ Representa um clube de leitura criado por um usuário. Os atributos são:
 - `id`: VARCHAR2, chave primária.
 - `criador`: VARCHAR2, chave estrangeira referenciando `Usuario`.
 - `nome`: VARCHAR2, obrigatório.
-- `description`: VARCHAR2, opcional.
+- `descricao`: VARCHAR2, opcional.
 
 #### Livro
 Representa os livros que podem ser adicionados aos clubes de leitura. Os atributos são:
@@ -123,7 +123,7 @@ CLUBE {
     VARCHAR2 id
     VARCHAR2 criador
     VARCHAR2 nome
-    VARCHAR2 description
+    VARCHAR2 descricao
 }
 
 LIVRO {
@@ -208,6 +208,8 @@ O projeto está organizado de forma modular para facilitar a manutenção e a es
 - `feature/logger`: Utilizada para a implementação do LOG.
 - `feature/tests`: Utilizada para a implementação de testes da API.
 - `feature/test_database`: Utilizada para a implementação de testes do Banco de Dados.
+
+Também foi implementado um fluxo de CI para verificação do código, que baixa as dependencias e executa os testes unitários.
 
 ### Visualização do Flow
 ```mermaid

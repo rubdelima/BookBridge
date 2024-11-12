@@ -52,7 +52,9 @@ VALUES
 ('U009', 'C003'),
 ('U010', 'C001'),
 ('U010', 'C002'),
+('U001', 'C003'),
 ('U010', 'C003');
+
 
 INSERT INTO adiciona (usuario_id, clube_id, livro_id, data_adicao)
 VALUES
@@ -79,3 +81,9 @@ VALUES
 ('U008', 'L023', 'Gabriela, Cravo e Canela traz um charme único à literatura.', 4, '2024-11-18 17:00:00'),
 ('U009', 'L024', 'O Quinze é uma obra que ilustra a força do sertanejo.', 5, '2024-11-19 18:00:00'),
 ('U010', 'L025', 'A Moreninha é uma história leve e encantadora.', 3, '2024-11-20 19:00:00');
+
+INSERT INTO clube (id, criador, nome, descricao)
+VALUES
+('C001', 'U001', 'Clube de Leitura Clássicos Brasileiros', 'Um clube dedicado a discutir obras clássicas da literatura brasileira.'),
+('C002', 'U003', 'Clube de Leitura Contemporâneos', 'Explorando a literatura brasileira contemporânea.'),
+('C003', 'U005', 'Clube de Leitura Poesia', 'Para amantes da poesia brasileira.');
