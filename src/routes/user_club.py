@@ -11,6 +11,8 @@ def post_user_clubs(current_user, clube_id):
     Adiciona o usuário autenticado a um clube.
 
     ---
+    tags:
+      - Gerenciar Participações a Clubes
     parameters:
       - name: Authorization
         in: header
@@ -100,6 +102,8 @@ def get_users_club(clube_id):
     Lista os usuários de um clube específico.
 
     ---
+    tags:
+      - Gerenciar Participações a Clubes
     parameters:
       - name: clube_id
         in: path
@@ -184,6 +188,8 @@ def delete_user_clubs(current_user, clube_id):
     Remove o usuário autenticado de um clube.
 
     ---
+    tags:
+      - Gerenciar Participações a Clubes
     parameters:
       - name: Authorization
         in: header

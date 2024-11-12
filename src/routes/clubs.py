@@ -13,6 +13,8 @@ def post_club(current_user):
     Endpoint para criação de um novo clube de livros.
 
     ---
+    tags:
+      - Clubes
     parameters:
       - name: Authorization
         in: header
@@ -105,6 +107,8 @@ def get_club(club_id):
     Endpoint para busca de um clube específico pelo seu ID.
 
     ---
+    tags:
+      - Clubes
     parameters:
       - name: club_id
         in: path
@@ -163,6 +167,8 @@ def find_clubs():
     Endpoint para busca de clubes por nome.
 
     ---
+    tags:
+      - Clubes
     parameters:
       - name: nome
         in: query
@@ -226,6 +232,8 @@ def update_club(current_user, club_id):
     Endpoint para atualizar as informações de um clube.
 
     ---
+    tags:
+      - Clubes
     parameters:
       - name: Authorization
         in: header
@@ -297,6 +305,8 @@ def delete_club(current_user, club_id):
     Endpoint para deletar um clube.
 
     ---
+    tags:
+      - Clubes
     parameters:
       - name: Authorization
         in: header

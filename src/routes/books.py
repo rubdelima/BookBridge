@@ -14,6 +14,8 @@ def post_livro(current_user):
     Endpoint para criação de um novo livro.
 
     ---
+    tags:
+      - Livros
     parameters:
       - name: Authorization
         in: header
@@ -87,6 +89,8 @@ def get_livro(livro_id):
     Endpoint para busca de um livro específico pelo seu ID.
 
     ---
+    tags:
+      - Livros
     parameters:
       - name: livro_id
         in: path
@@ -130,6 +134,8 @@ def get_livros():
     Endpoint para busca de livros com base em parâmetros.
 
     ---
+    tags:
+      - Livros
     parameters:
       - name: nome
         in: query
@@ -220,6 +226,8 @@ def post_avaliacao(current_user):
     Endpoint para criação de uma nova avaliação.
 
     ---
+    tags:
+      - Livros
     parameters:
       - name: Authorization
         in: header

@@ -36,6 +36,8 @@ def post_club_books(current_user):
     Endpoint para adicionar um livro ao grupo de um usuário.
 
     ---
+    tags:
+      - Gerenciar Livros em Clubes
     parameters:
       - name: Authorization
         in: header
@@ -98,6 +100,8 @@ def list_club_books(clube_id):
     Endpoint para listar os livros adicionados ao grupo de um usuário.
 
     ---
+    tags:
+      - Gerenciar Livros em Clubes
     parameters:
       - name: clube_id
         in: path
@@ -189,6 +193,8 @@ def delete_club_books(current_user):
     Endpoint para remover um livro do grupo de um usuário.
 
     ---
+    tags:
+      - Gerenciar Livros em Clubes
     parameters:
       - name: Authorization
         in: header
